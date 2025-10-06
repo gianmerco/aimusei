@@ -10,9 +10,9 @@ const routes: Routes = [
   { path: 'image-reader', component: ImageReaderComponent},
   { path: 'backoffice', component: HomepageComponent},
   { path: 'backoffice-iframe', component: HomepageIframeComponent},
-  { path: 'aimusei', component: HomeComponent},
+  { path: '', component: HomeComponent},
   { path: 'home-with-menu', component: HomeWithMenuComponent},
-  { path: '**', redirectTo: 'aimusei' },
+  { path: '**', redirectTo: '' },
 ];
 
 @NgModule({
