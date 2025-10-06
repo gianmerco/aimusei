@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: aptul9/backend
-  tag: "1.13"
+  tag: "1.14"
   pullPolicy: IfNotPresent
 
 service:
@@ -13,10 +13,11 @@ service:
   port: 8090
 
 config:
-  contextPath: /api
+  contextPath: /aimusei/api
   mongoUri: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000"
   appKey: "keytest123123"
 
   # datasources.env
   mongoHost: "mongo-service"
   mongoDatabase: "aimusei"
+  forwardHeadersStrategy: NATIVE
