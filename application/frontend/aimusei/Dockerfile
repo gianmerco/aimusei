@@ -9,7 +9,7 @@ RUN npm install
 
 # Copia il codice sorgente e builda l'app
 COPY . .
-RUN npx ng build --configuration production --base-href /aimusei/
+RUN npm run build -- --configuration production --base-href /aimusei/
 
 # Fase di produzione
 FROM nginx:alpine
