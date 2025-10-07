@@ -26,7 +26,7 @@ import { APP_BASE_HREF } from '@angular/common';
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: DefaultInterceptor, multi: true },
-    { provide: APP_BASE_HREF, useValue: '/aimusei/api' }
+    { provide: APP_BASE_HREF, useValue: '/aimusei' }
   ],
   bootstrap: [AppComponent]
 })
