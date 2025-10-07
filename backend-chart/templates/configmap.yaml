@@ -7,6 +7,7 @@ metadata:
 data:
   config.properties: |-
     server.servlet.context-path={{ .Values.config.contextPath }}
+    server.forward-headers-strategy={{ .Values.config.forwardHeadersStrategy }}
     spring.data.mongodb.uri={{ .Values.config.mongoUri }}
     aimusei.key={{ .Values.config.appKey }}
     logging.level.org.springframework.data.mongodb=DEBUG
