@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: be
-          image: harbor-adarte-coll.museiitaliani.it/adarte/aimusei_be:1.0
+          image: harbor-adarte-coll.museiitaliani.it/adarte/aimusei_be:1.1
           ports:
             - containerPort: 8090
           env:
