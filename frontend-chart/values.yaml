@@ -10,7 +10,7 @@ replicaCount: 1
 
 image:
   repository: gianmerco/fe
-  tag: "2.0"
+  tag: "2.1"
   pullPolicy: IfNotPresent
 
 service:
