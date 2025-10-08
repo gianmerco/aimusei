@@ -9,8 +9,8 @@ names:
 replicaCount: 1
 
 image:
-  repository: aptul9/frontend
-  tag: "1.5"
+  repository: gianmerco/fe
+  tag: "2.0"
   pullPolicy: IfNotPresent
 
 service:
