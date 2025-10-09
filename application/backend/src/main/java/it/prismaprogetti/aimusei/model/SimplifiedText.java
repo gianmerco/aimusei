@@ -16,4 +16,5 @@ public class SimplifiedText {
 	    private String validator;
 	    private LocalDateTime dateInsert;
 	    private LocalDateTime dateValidation;
+	    private Boolean validate;
 }

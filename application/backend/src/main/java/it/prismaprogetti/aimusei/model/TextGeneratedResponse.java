@@ -28,7 +28,7 @@ public class TextGeneratedResponse {
 		.textVersion(opera.getVersion())
 		.hashCode(opera.getHash())
 		.textSimplified(opera.getSintesi().stream().map(s ->
-			new SimplifiedText(s.getDisabilita(), s.getDescrizioneReviewed()==null?s.getDescrizioneAI():s.getDescrizioneReviewed(), s.getGenerator(), s.getValidator(), s.getDataInsert(), s.getDataValidation())
+			new SimplifiedText(s.getDisabilita(), s.getDescrizioneReviewed()==null?s.getDescrizioneAI():s.getDescrizioneReviewed(), s.getGenerator(), s.getValidator(), s.getDataInsert(), s.getDataValidation(),s.isValidata())
 		).toList())
 		.title(opera.getNome())
 		.build();
