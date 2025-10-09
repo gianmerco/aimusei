@@ -1,162 +1,236 @@
-[{
-  "_id": {
-    "$oid": "66b1fa68a361cab5f855d271"
+[
+  {
+    "_id": {"$oid": "68e2a0cc1e504051159eec31"},
+    "nome": "LA GIOCONDA",
+    "descrizione": "Dipinto della Gioconda di Leonardo da Vinci",
+    "version": 0,
+    "hash": "a457d3e7541a658c7c23beff4db3fd35",
+    "tag": "MUS3-SEZ1-IT",
+    "lastUpdate": {"$date": "2025-10-13T11:20:00.000Z"},
+    "sintesi": [
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISLESSIA",
+        "descrizioneAI": "Testo semplificato per dislessia sulla Gioconda.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-13T16:45:51.372Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISCALCULIA",
+        "descrizioneAI": "Testo semplificato per discalculia sulla Gioconda.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-13T16:45:51.373Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "EASY_TO_READ",
+        "descrizioneAI": "Testo facile da leggere sulla Gioconda.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-13T16:45:51.374Z"},
+        "version": 0
+      }
+    ],
+    "statoOpera": "REVISIONATO",
+    "latest": false,
+    "engineLLM": "gpt-4",
+    "_class": "it.prismaprogetti.aimusei.collection.Opera"
   },
-  "nome": "GIOCONDA",
-  "descrizione": "La Gioconda, nota anche come Monna Lisa, è un dipinto a olio su tavola di pioppo realizzato da Leonardo da Vinci (77 × 53 cm e 13 mm di spessore), databile al 1503-1506 circa e conservato nel Museo del Louvre di Parigi col numero 779 di catalogo. Opera iconica ed enigmatica della pittura mondiale, si tratta sicuramente del ritratto più celebre della storia nonché di una delle opere d'arte più note in assoluto. Il sorriso quasi impercettibile del soggetto, col suo alone di mistero, ha ispirato tantissime pagine di critica, letteratura, opere di immaginazione e persino studi psicoanalitici; sfuggente, ironica e sensuale, la Monna Lisa è stata di volta in volta amata e idolatrata, ma anche irrisa e vandalizzata.",
-  "version": 0,
-  "tag": "MUS1-SEZ2-ITA",
-  "sintesi": [
-    {
-      "disabilita": "DISLESSIA",
-      "descrizione": "La Gioconda, che molti chiamano Monna Lisa, è un dipinto fatto da Leonardo da Vinci. È esposto nel Museo del Louvre a Parigi. Questo dipinto è molto famoso e speciale nel mondo dell'arte. Ritrae una donna con un sorriso delicato e misterioso che ha ispirato molte discussioni e storie. Il sorriso ha un fascino particolare che cattura l'attenzione di chi guarda il quadro.     La Monna Lisa è stata molto ammirata nel corso degli anni, ma a volte è stata anche criticata e persino danneggiata. Quest'opera d'arte rimane una delle più conosciute e amate al mondo.",
-      "validata": false
-    },
-    {
-      "disabilita": "DISCALCULIA",
-      "descrizione": "La Gioconda, che molti chiamano Monna Lisa, è un dipinto fatto da Leonardo da Vinci. È esposto nel Museo del Louvre a Parigi. Questo dipinto è molto famoso e speciale nel mondo dell'arte. Ritrae una donna con un sorriso delicato e misterioso che ha ispirato molte discussioni e storie. Il sorriso ha un fascino particolare che cattura l'attenzione di chi guarda il quadro.     La Monna Lisa è stata molto ammirata nel corso degli anni, ma a volte è stata anche criticata e persino danneggiata. Quest'opera d'arte rimane una delle più conosciute e amate al mondo.",
-      "validata": false
-    }
-  ],
-  "_class": "it.prismaprogetti.aimusei.collection.Opera"
-},
-{
-  "_id": {
-    "$oid": "66b1fa68a361cab5f856d271"
+  {
+    "_id": {"$oid": "68e2a0cc1e504051159eec32"},
+    "nome": "LA GIOCONDA",
+    "descrizione": "Descrizione aggiornata del dipinto della Gioconda",
+    "version": 1,
+    "hash": "8477f63ae248b52f37f79fe5992692b3",
+    "tag": "MUS3-SEZ1-IT",
+    "lastUpdate": {"$date": "2025-10-14T15:10:00.000Z"},
+    "sintesi": [
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISLESSIA",
+        "descrizioneAI": "Testo semplificato aggiornato per dislessia sulla Gioconda.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-14T16:45:51.372Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISCALCULIA",
+        "descrizioneAI": "Testo semplificato aggiornato per discalculia sulla Gioconda.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-14T16:45:51.373Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "EASY_TO_READ",
+        "descrizioneAI": "Testo facile da leggere aggiornato sulla Gioconda.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-14T16:45:51.374Z"},
+        "version": 0
+      }
+    ],
+    "statoOpera": "GENERATO_AI",
+    "latest": true,
+    "engineLLM": "gpt-4",
+    "_class": "it.prismaprogetti.aimusei.collection.Opera"
   },
-  "nome": "PANTHEON",
-  "descrizione": "Il Pantheon, tempio dedicato a tutti gli dei, fu fondato tra il 25 e il 27 a.C. da Marco Vipsanio Agrippa, genero dell’imperatore Augusto. Danneggiato nell’80 e nel 110 d.C., fu restaurato da Adriano tra il 118 e il 125 d.C.; donato dall’imperatore bizantino Foca a papa Bonifacio IV, fu consacrato nel 609 d.C. come basilica di S. Maria ad Martyres. Il pronao è sostenuto da sedici colonne corinzie di granito grigio e rosa. L’iscrizione sul frontone recita 'M. Agrippa. L. F. Cos. Tertium. Fecit' (Marco Agrippa, figlio di Lucio, console per la terza volta fece): è la dedica con cui l’imperatore Adriano intese sancire la paternità del primo Pantheon, realizzato su impulso del celebre condottiero. La porta con fodera in bronzo, alta m 7,53 e larga circa m 4,90, ha due ante pesanti 7 tonnellate ciascuna. L’interno è un’aula circolare di m 43,44 di diametro e altrettanti di altezza. La cupola a cassettoni termina in un oculo di circa m 9 di diametro e il raggio di luce che lo attraversa fa del Pantheon un orologio astronomico. L’equilibrio tra pieni e vuoti, tra le luci e le ombre, qualifica lo spazio dell’aula centrale e cattura l’attenzione del visitatore, totalmente immerso nella spiritualità e nel fascino di un luogo che parla di una tensione universale capace di toccare il pubblico al di là della cultura, della religione, della provenienza. Preziosi anche i documenti d’arte custoditi nel monumento, opere di grande rilievo che spaziano dal Rinascimento al Barocco.",
-  "version": 3,
-  "hash": "",
-  "tag": "MUS1-SEZ3-ITA",
-  "lastUpdate": {
-    "$date": "2025-06-29T22:00:00.000Z"
+  {
+    "_id": {"$oid": "68e2a0cc1e504051159eec33"},
+    "nome": "THE STARRY NIGHT",
+    "descrizione": "Famous painting by Vincent van Gogh",
+    "version": 0,
+    "hash": "1de5d0b65298af5d5957b37a75743e45",
+    "tag": "MUS4-SEZ1-EN",
+    "lastUpdate": {"$date": "2025-10-15T09:45:00.000Z"},
+    "sintesi": [
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISLESSIA",
+        "descrizioneAI": "Simplified text for dyslexia about The Starry Night.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-15T16:45:51.372Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISCALCULIA",
+        "descrizioneAI": "Simplified text for dyscalculia about The Starry Night.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-15T16:45:51.373Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "EASY_TO_READ",
+        "descrizioneAI": "Easy to read text about The Starry Night.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-15T16:45:51.374Z"},
+        "version": 0
+      }
+    ],
+    "statoOpera": "REVISIONATO",
+    "latest": false,
+    "engineLLM": "gpt-4",
+    "_class": "it.prismaprogetti.aimusei.collection.Opera"
   },
-  "sintesi": [
-    {
-      "disabilita": "DISLESSIA",
-      "descrizione": "Il Pantheon è un grande tempio dedicato a tutti gli dèi, costruito tra il 25 e il 27 a.C. da Marco Vipsanio Agrippa, genero dell’imperatore Augusto. Nel 80 d.C. e nel 110 d.C. subì gravi danni, ma fu restaurato tra il 118 e il 125 d.C. dall’imperatore Adriano. Nel 609 d.C. l’imperatore bizantino Foca lo donò a papa Bonifacio IV, che lo consacrò come chiesa di Santa Maria ad Martyres. Davanti al Pantheon c’è un grande portico sostenuto da sedici colonne di granito grigio e rosa. Sul frontone si legge l’iscrizione “M. Agrippa, figlio di Lucio, console per la terza volta, fece.” La massiccia porta di bronzo è alta 7,53 m e larga circa 4,90 m; ciascuna delle due ante pesa circa 7 tonnellate. All’interno si trova un’ampia aula circolare di 43,44 m di diametro e di altezza. La cupola è scandita da riquadri incassati, detti cassettoni, e si apre in alto con un grande oculo di 9 m di diametro. Ogni giorno il raggio di luce che entra dall’oculo si sposta lentamente e trasforma il Pantheon in un orologio astronomico naturale. Lo spazio interno alterna pieni e vuoti: muri, colonne, finestre e l’oculo disegnano luci e ombre suggestive. Questa armonia crea un’atmosfera spirituale che coinvolge ogni visitatore, indipendentemente dalla sua cultura o religione. All’interno sono poi conservate opere d’arte di grande valore, che vanno dal Rinascimento al Barocco, arricchendo il monumento e sottolineandone l’importanza storica e artistica.",
-      "validata": false,
-      "editor": "",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
+  {
+    "_id": {"$oid": "68e2a0cc1e504051159eec34"},
+    "nome": "THE STARRY NIGHT",
+    "descrizione": "Updated description of The Starry Night painting",
+    "version": 1,
+    "hash": "49e1f8d34b12da52dc78c2300ee26853",
+    "tag": "MUS4-SEZ1-EN",
+    "lastUpdate": {"$date": "2025-10-16T13:25:00.000Z"},
+    "sintesi": [
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISLESSIA",
+        "descrizioneAI": "Updated simplified text for dyslexia about The Starry Night.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-16T16:45:51.372Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISCALCULIA",
+        "descrizioneAI": "Updated simplified text for dyscalculia about The Starry Night.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-16T16:45:51.373Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "EASY_TO_READ",
+        "descrizioneAI": "Updated easy to read text about The Starry Night.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-16T16:45:51.374Z"},
+        "version": 0
       }
-    },
-    {
-      "disabilita": "DISCALCULIA",
-      "descrizione": "Il Pantheon è un tempio dedicato a tutti gli dei. Fu costruito molto tempo fa da Marco Vipsanio Agrippa, che era genero dell’imperatore Augusto. Nel corso della sua storia ha subito dei danni, ma è stato poi restaurato da un altro imperatore chiamato Adriano. Successivamente, un imperatore bizantino lo donò a papa Bonifacio Quarto, che lo consacrò come basilica dedicata a Santa Maria e ai martiri. La parte anteriore del tempio è sostenuta da colonne di granito con colori grigio e rosa. Sulla facciata c’è un’iscrizione che ricorda Marco Agrippa, colui che volle costruire il primo Pantheon. La porta del tempio è molto grande, con due ante pesanti e robuste. All’interno, la sala principale è di forma circolare e molto alta. La grande cupola, decorata con riquadri incassati, si apre in cima con un foro che lascia passare la luce del sole, trasformando il Pantheon in una sorta di orologio naturale. L’armonia tra le parti piene e vuote, tra luci e ombre, crea uno spazio speciale che cattura l’attenzione di chi visita, coinvolgendolo in un’atmosfera di spiritualità e fascino. Questo luogo riesce a toccare le persone indipendentemente dalla loro cultura, religione o origine. All’interno si trovano anche opere d’arte di grande valore, che coprono stili diversi come quelli del Rinascimento e del Barocco.",
-      "validata": true,
-      "editor": "",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    },
-    {
-      "disabilita": "EASY_TO_READ",
-      "descrizione": "Il Pantheon è un tempio dedicato a tutti gli dei. Fu costruito molto tempo fa da Marco Vipsanio Agrippa, che era genero dell’imperatore Augusto. Nel corso del tempo, il Pantheon è stato danneggiato, ma poi è stato riparato dall’imperatore Adriano. Più avanti, un imperatore bizantino chiamato Foca lo ha donato a papa Bonifacio Quarto, che lo ha trasformato in una chiesa dedicata a Santa Maria e ai martiri. Davanti al tempio ci sono sedici colonne alte e robuste, fatte di granito grigio e rosa. Sulla facciata c’è una scritta che parla di Marco Agrippa, colui che costruì il primo Pantheon. La porta è grande e fatta di bronzo. Ha due parti pesanti. Dentro, la stanza principale è rotonda e molto alta. Sopra c’è una grande cupola con dei riquadri incassati. In cima alla cupola c’è un foro che lascia entrare la luce del sole. Questo foro fa diventare il Pantheon come un orologio naturale. La luce e l’ombra creano un gioco bello da vedere. Questo rende il tempio speciale. Chi entra si sente avvolto da un’atmosfera calma e misteriosa. Il Pantheon parla a tutti, indipendentemente da dove vengono o cosa credono. Dentro il tempio ci sono anche opere d’arte molto importanti. Queste opere mostrano stili diversi, come il Rinascimento e il Barocco.",
-      "validata": true,
-      "editor": "",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    },
-    {
-      "disabilita": "DISLESSIA_NEW",
-      "descrizione": "Il Pantheon è un tempio dedicato a tutti gli dei. Fu costruito molto tempo fa da Marco Vipsanio Agrippa, che era genero dell’imperatore Augusto. Nel corso del tempo, il Pantheon ha subito alcuni danni, ma poi è stato restaurato da un altro imperatore chiamato Adriano. Più tardi, un imperatore bizantino lo donò a papa Bonifacio Quarto, che lo trasformò in una chiesa dedicata a Santa Maria e ai martiri. La parte davanti al tempio è sorretta da sedici colonne di granito, con colori grigio e rosa. Sulla facciata c’è un’iscrizione che ricorda Marco Agrippa, colui che fece costruire il primo Pantheon. La porta è molto grande, fatta di bronzo. Ha due ante molto pesanti.Dentro, la sala principale ha forma circolare ed è molto alta. La grande cupola sopra ha dei riquadri incassati e si apre in cima con un foro che lascia passare la luce del sole. Questo foro fa del Pantheon un orologio naturale. L’equilibrio tra parti piene e vuote, tra luce e ombra, rende lo spazio speciale. Chi visita il Pantheon si sente immerso in un’atmosfera spirituale e affascinante. Questo luogo parla a tutti, indipendentemente dalla loro cultura, religione o origine. Dentro il tempio ci sono anche opere d’arte importanti. Queste opere rappresentano stili diversi, dal Rinascimento al Barocco.",
-      "validata": false,
-      "editor": "",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    },
-    {
-      "disabilita": "DISCALCULIA_NEW",
-      "descrizione": "Il Pantheon è un grande tempio che è stato costruito per onorare tutti gli dèi. È stato costruito molto tempo fa, tra il venticinque e il ventisette avanti Cristo, da un uomo importante di nome Marco Vipsanio Agrippa, che era il genero dell’imperatore Augusto. Nel tempo, il Pantheon ha subito dei danni e ha dovuto essere riparato due volte: una volta nel periodo dell’imperatore Adriano, che ha fatto riparazioni tra il centodiciotto e il centoventicinque dopo Cristo, e un’altra volta quando un altro imperatore, Foca, l’ha donato a papa Bonifacio IV, che l’ha trasformato in una chiesa nel seicento. All’ingresso del Pantheon ci sono delle colonne alte e fatte di granito che reggono il tetto. Sopra l’ingresso c’è una scritta che ricorda chi ha costruito il tempio. La porta principale è molto grande e pesante. Dentro, c’è una grande stanza rotonda, che è alta e larga quanto la sua parte inferiore. La parte superiore della stanza ha una cupola che si chiude con un grande buco, chiamato oculo, attraverso il quale entra la luce del sole. La luce che entra cambia durante il giorno, come se fosse un orologio naturale che segna il passare del tempo. Dentro il Pantheon ci sono delle luci e delle ombre che si alternano, creando un’atmosfera che fa sentire le persone speciali, come se fossero in un luogo unico. Inoltre, all’interno si possono ammirare anche opere d’arte molto importanti, realizzate durante il Rinascimento e il Barocco, che aggiungono ancora più bellezza al tempio.",
-      "validata": false,
-      "editor": "",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    },
-    {
-      "disabilita": "EASY_TO_READ_NEW",
-      "descrizione": "Il Pantheon è un grande tempio dedicato a tutti gli dèi. È stato costruito tra il 25 e il 27 a.C. da Marco Vipsanio Agrippa, che era il genero dell’imperatore Augusto. Nel 80 e nel 110 d.C. il tempio è stato danneggiato e restaurato tra il 118 e il 125 d.C. dall’imperatore Adriano. Nel 609 d.C., l’imperatore Foca lo ha dato a papa Bonifacio IV, che lo ha trasformato in chiesa.Davanti al Pantheon ci sono 16 colonne di granito grigio e rosa. Sopra l’ingresso c’è una scritta che dice: “Marco Agrippa, figlio di Lucio, console per la terza volta, fece il tempio.” La porta è alta 7,53 metri e larga circa 4,90 metri. Ogni anta della porta pesa 7 tonnellate. Dentro il Pantheon, c’è una grande sala circolare che è alta e larga 43,44 metri. La cupola ha una serie di riquadri e un buco in alto chiamato oculo, che è largo 9 metri. Ogni giorno, la luce che entra dal buco si sposta e fa del Pantheon un orologio naturale. Dentro, ci sono luci e ombre che si alternano, creando un’atmosfera speciale. Questo luogo fa sentire ogni persona immersa in una sensazione unica e spirituale. Inoltre, dentro ci sono opere d’arte molto importanti, che vanno dal Rinascimento al Barocco, che rendono il Pantheon ancora più bello e storico.",
-      "validata": true,
-      "editor": "",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    }
-  ],
-  "_class": "it.prismaprogetti.aimusei.collection.Opera"
-},
-{
-  "_id": {
-    "$oid": "685e72cc75452080b4c200dd"
+    ],
+    "statoOpera": "GENERATO_AI",
+    "latest": true,
+    "engineLLM": "gpt-4",
+    "_class": "it.prismaprogetti.aimusei.collection.Opera"
   },
-  "nome": "UMBRIA",
-  "descrizione": "La Galleria nazionale dell’Umbria accoglie una delle più ricche collezioni d’arte d’Italia. Oggi il museo funge da “antenna culturale”: intercetta e diffonde le voci della cultura, anche grazie a una collezione che riunisce sia nel percorso sia nei depositi, più di 3000 opere tra dipinti, sculture, ceramiche, tessuti e oreficerie. Il percorso espositivo si articola su due piani: il viaggio comincia tra Duecento e Trecento; prosegue con il Tardogotico perugino di Gentile da Fabriano e si inoltra tra i capolavori di esponenti del Rinascimento come Beato Angelico, Benozzo Gozzoli e Piero della Francesca. Le sale e le logge raccontano spazi e storie che hanno forgiato la fama di Perugia come una delle città di riferimento del patrimonio artistico italiano. Ne sono un esempio le incantevoli sale monografiche dedicate a Pinturicchio e al maestro Perugino, del quale la Galleria raccoglie la collezione più ricca e completa al mondo. È un percorso da ammirare anche con lo sguardo rivolto verso l’alto, come succede nella Sala Farnesiana decorata con gli affreschi delle Storie di personaggi della famiglia Farnese.L’ultima parte del percorso museale espone il meglio dell’arte in Umbria tra Seicento e Novecento. La Galleria ospita anche un laboratorio di restauro, una biblioteca specializzata in storia dell’arte, una sala convegni e l’affrescata Sala Podiani, dove vengono ospitate mostre temporanee, concerti e spettacoli.",
-  "version": 3,
-  "hash": "",
-  "tag": "MUS1-SEZ1-ITA",
-  "lastUpdate": {
-    "$date": "2025-06-29T22:00:00.000Z"
+  {
+    "_id": {"$oid": "68e2a0cc1e504051159eec35"},
+    "nome": "NOTTE STELLATA",
+    "descrizione": "Famoso dipinto di Vincent van Gogh",
+    "version": 0,
+    "hash": "d804570defbc0d00a45738676ea11575",
+    "tag": "MUS4-SEZ1-IT",
+    "lastUpdate": {"$date": "2025-10-17T10:50:00.000Z"},
+    "sintesi": [
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISLESSIA",
+        "descrizioneAI": "Testo semplificato per dislessia sulla Notte Stellata.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-17T16:45:51.372Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISCALCULIA",
+        "descrizioneAI": "Testo semplificato per discalculia sulla Notte Stellata.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-17T16:45:51.373Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "EASY_TO_READ",
+        "descrizioneAI": "Testo facile da leggere sulla Notte Stellata.",
+        "validata": true,
+        "dataInsert": {"$date": "2025-10-17T16:45:51.374Z"},
+        "version": 0
+      }
+    ],
+    "statoOpera": "REVISIONATO",
+    "latest": false,
+    "engineLLM": "gpt-4",
+    "_class": "it.prismaprogetti.aimusei.collection.Opera"
   },
-  "sintesi": [
-    {
-      "disabilita": "DISLESSIA",
-      "descrizione": "La Galleria Nazionale dell’Umbria ha molte opere d'arte, più di 3000 tra dipinti, sculture, ceramiche e altro. Il museo è diviso in due piani. Il percorso inizia con le opere del Duecento e Trecento e prosegue con il Tardogotico e il Rinascimento. Ci sono anche capolavori di artisti famosi come Beato Angelico e Piero della Francesca. Le sale sono dedicate anche a Pinturicchio e Perugino, e la collezione su Perugino è la più completa al mondo. Una sala particolare è la Sala Farnesiana, con affreschi della famiglia Farnese. Nella parte finale del museo si vedono opere del Seicento e Novecento. Il museo ha anche un laboratorio di restauro, una biblioteca e una sala per mostre, concerti e spettacoli.",
-      "validata": true,
-      "editor": "modulo accessibilità",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
+  {
+    "_id": {"$oid": "68e2a0cc1e504051159eec36"},
+    "nome": "NOTTE STELLATA",
+    "descrizione": "Descrizione aggiornata del dipinto Notte Stellata",
+    "version": 1,
+    "hash": "fdd0c159593fed6c9be508bcd93f488e",
+    "tag": "MUS4-SEZ1-IT",
+    "lastUpdate": {"$date": "2025-10-18T14:15:00.000Z"},
+    "sintesi": [
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISLESSIA",
+        "descrizioneAI": "Testo semplificato aggiornato per dislessia sulla Notte Stellata.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-18T16:45:51.372Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "DISCALCULIA",
+        "descrizioneAI": "Testo semplificato aggiornato per discalculia sulla Notte Stellata.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-18T16:45:51.373Z"},
+        "version": 0
+      },
+      {
+        "generator": "gpt-4",
+        "disabilita": "EASY_TO_READ",
+        "descrizioneAI": "Testo facile da leggere aggiornato sulla Notte Stellata.",
+        "validata": false,
+        "dataInsert": {"$date": "2025-10-18T16:45:51.374Z"},
+        "version": 0
       }
-    },
-    {
-      "disabilita": "DISCALCULIA",
-      "descrizione": "La Galleria Nazionale dell’Umbria è uno dei musei con tante opere d’arte. Si trovano dipinti, sculture, ceramiche, tessuti e oreficerie. Il museo è diviso in due piani. Il percorso parte con le opere del Duecento e Trecento, poi si passa al Tardogotico e al Rinascimento. Ci sono anche opere di pittori molto famosi come Beato Angelico e Piero della Francesca. Le sale sono dedicate anche a Pinturicchio e Perugino, con una collezione unica su Perugino. Un’area speciale è la Sala Farnesiana, con affreschi della famiglia Farnese. Nella parte finale ci sono opere del Seicento e Novecento. Il museo ha anche un laboratorio di restauro, una biblioteca e una sala per mostre, concerti e spettacoli.",
-      "validata": false,
-      "editor": "modulo accessibilità",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    },
-    {
-      "disabilita": "EASY_TO_READ",
-      "descrizione": "La Galleria Nazionale dell’Umbria è un museo con tante opere d'arte. Ha dipinti, sculture, ceramiche, tessuti e oreficerie. Il museo è diviso in due piani. Il percorso inizia con le opere più vecchie, del Duecento e Trecento, e continua con il Rinascimento. Ci sono opere di artisti famosi come Beato Angelico e Piero della Francesca. Ci sono anche sale dedicate a Pinturicchio e Perugino, con la collezione più grande di Perugino. Un posto speciale è la Sala Farnesiana, con affreschi della famiglia Farnese. Nella parte finale ci sono opere del Seicento e Novecento. Il museo ha anche un laboratorio di restauro, una biblioteca e una sala per mostre e concerti.",
-      "validata": false,
-      "editor": "modulo accessibilità",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    },
-    {
-      "disabilita": "DISLESSIA_NEW",
-      "descrizione": "La Galleria Nazionale dell’Umbria ha molte opere d'arte, più di 3000 tra dipinti, sculture, ceramiche e altro. Il museo è diviso in due piani. Il percorso inizia con le opere del Duecento e Trecento e prosegue con il Tardogotico e il Rinascimento. Ci sono anche capolavori di artisti famosi come Beato Angelico e Piero della Francesca. Le sale sono dedicate anche a Pinturicchio e Perugino, e la collezione su Perugino è la più completa al mondo. Una sala particolare è la Sala Farnesiana, con affreschi della famiglia Farnese. Nella parte finale del museo si vedono opere del Seicento e Novecento. Il museo ha anche un laboratorio di restauro, una biblioteca e una sala per mostre, concerti e spettacoli.",
-      "validata": false,
-      "editor": "modulo accessibilità",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    },
-    {
-      "disabilita": "DISCALCULIA_NEW",
-      "descrizione": "La Galleria Nazionale dell’Umbria è uno dei musei con tante opere d’arte. Si trovano dipinti, sculture, ceramiche, tessuti e oreficerie. Il museo è diviso in due piani. Il percorso parte con le opere del Duecento e Trecento, poi si passa al Tardogotico e al Rinascimento. Ci sono anche opere di pittori molto famosi come Beato Angelico e Piero della Francesca. Le sale sono dedicate anche a Pinturicchio e Perugino, con una collezione unica su Perugino. Un’area speciale è la Sala Farnesiana, con affreschi della famiglia Farnese. Nella parte finale ci sono opere del Seicento e Novecento. Il museo ha anche un laboratorio di restauro, una biblioteca e una sala per mostre, concerti e spettacoli.",
-      "validata": false,
-      "editor": "modulo accessibilità",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    },
-    {
-      "disabilita": "EASY_TO_READ_NEW",
-      "descrizione": "La Galleria Nazionale dell’Umbria è un museo con tante opere d'arte. Ha dipinti, sculture, ceramiche, tessuti e oreficerie. Il museo è diviso in due piani. Il percorso inizia con le opere più vecchie, del Duecento e Trecento, e continua con il Rinascimento. Ci sono opere di artisti famosi come Beato Angelico e Piero della Francesca. Ci sono anche sale dedicate a Pinturicchio e Perugino, con la collezione più grande di Perugino. Un posto speciale è la Sala Farnesiana, con affreschi della famiglia Farnese. Nella parte finale ci sono opere del Seicento e Novecento. Il museo ha anche un laboratorio di restauro, una biblioteca e una sala per mostre e concerti.",
-      "validata": false,
-      "editor": "modulo accessibilità",
-      "lastUpdate": {
-        "$date": "2025-06-29T22:00:00.000Z"
-      }
-    }
-  ],
-  "_class": "it.prismaprogetti.aimusei.collection.Opera"
-}]
+    ],
+    "statoOpera": "GENERATO_AI",
+    "latest": true,
+    "engineLLM": "gpt-4",
+    "_class": "it.prismaprogetti.aimusei.collection.Opera"
+  }
+]
