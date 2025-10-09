@@ -2,8 +2,8 @@
 
   function IframePlugin(options) {
     this.options = Object.assign({
-      pathIcon: './lib/plugin',   // icon default path 
-      urlIframe: 'http://localhost:4200'
+      pathIcon: 'http://aimusei.local/aimusei/api',   // icon default path 
+      urlIframe: 'http://aimusei.local/aimusei/'
     }, options || {});
 
     this.iconBtnMap = new Map();
@@ -56,7 +56,7 @@
   }
 
   // Invio messaggi all’iframe
-  IframePlugin.prototype.messageToIframe = function (tag) {
+  IframePlugin.prototype.messageToIframe = function (tag, description) {
     const iframe = this.iframe 
 	//const iframe = document.getElementById('widget-iframe');
     const iconBtn = this.iconBtnMap.get(tag);
@@ -65,10 +65,10 @@
       iframe.contentWindow.postMessage({
         type: 'init',
         payload: {
-          text: "La Galleria nazionale dell’Umbria accoglie una delle più ricche collezioni d’arte d’Italia...",
+          text: description,
           funz: "CREATE",
           tag: tag,
-          title: "MUSEO X",
+          title: "Title"+tag,
           status: iconBtn.src.includes('rossa.png') ? 'new' :
                   (iconBtn.src.includes('blu.png') ? 'ai' : 'verified'),
         }
@@ -180,7 +180,7 @@
       button.onclick = () => {
         window.currentTextArea = textarea;
 		this.openModal();
-        this.messageToIframe(tag);
+        this.messageToIframe(tag, textarea.value);
       };
 
       button.appendChild(icon);
