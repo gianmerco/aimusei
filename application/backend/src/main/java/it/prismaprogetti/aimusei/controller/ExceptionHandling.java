@@ -10,7 +10,7 @@ import it.prismaprogetti.aimusei.exception.InvalidOpenAIKeyException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@ControllerAdvice(assignableTypes = { BackofficeController.class })
+@ControllerAdvice(assignableTypes = { BackofficeController.class , AccessibilityController.class, PublicController.class})
 public class ExceptionHandling {
 
 	@ExceptionHandler(BadRequestException.class)

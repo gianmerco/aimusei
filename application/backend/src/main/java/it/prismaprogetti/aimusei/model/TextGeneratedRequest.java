@@ -7,4 +7,5 @@ public class TextGeneratedRequest {
 
 	private String tag;     
 	private String originalText;
+	private String title;
 }

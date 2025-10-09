@@ -1,17 +1,28 @@
 package it.prismaprogetti.aimusei.collection;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+import it.prismaprogetti.aimusei.model.TipoDisabilita;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Sintesi {
 
-	private String disabilita;
-	private String descrizione;
+	private String generator;
+	private TipoDisabilita disabilita;
+	private String descrizioneAI;
+	private String descrizioneReviewed;
 	private boolean validata;
-	private String editor;
-	private LocalDate lastUpdate; //system date
+	private String validator;
+	private LocalDateTime dataInsert; //system date
+	private LocalDateTime dataValidation; //system date
+	
 
 	
 	

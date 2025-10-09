@@ -1,25 +1,24 @@
-# Dockerfile per Angular App
-FROM node:16-alpine as build
-
+# ---------- Stage 1: build Angular ----------
+FROM node:18-alpine AS build
 WORKDIR /app
 
 # Copia i file di package e installa le dipendenze
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# Copia il codice sorgente e builda l'app
+# Copia sorgenti e builda per sottocartella /aimusei/
 COPY . .
-RUN npm run build -- --prod
+# NOTA: aggiungo anche --deploy-url per prefissare gli URL degli asset
+RUN NODE_OPTIONS=--openssl-legacy-provider npm run build -- --configuration production --base-href /aimusei/
 
-# Fase di produzione
+# ---------- Stage 2: serve con Nginx ----------
 FROM nginx:alpine
 
-# Copia i file buildati in nginx
-COPY --from=build /app/dist/aimusei /usr/share/nginx/html
+# Config Nginx per SPA in sottocartella
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copia la configurazione nginx personalizzata
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copia gli artefatti dentro /usr/share/nginx/html/aimusei/
+# Sostituisci "aimusei" se il nome della cartella in dist è diverso
+COPY --from=build /app/dist/aimusei/ /usr/share/nginx/html/aimusei/
 
 EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]

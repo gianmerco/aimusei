@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aimusei-ingress-manuale
+  namespace: aimusei
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "aimusei.local"
+      http:
+        paths:
+          - path: /aimusei/api/
+            pathType: Prefix
+            backend:
+              service:
+                name: aimusei-be-service
+                port:
+                  number: 8090
+
+          - path: /aimusei/
+            pathType: Prefix
+            backend:
+              service:
+                name: aimusei-fe-service
+                port:
+                  number: 80
