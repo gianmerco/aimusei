@@ -14,6 +14,7 @@ import it.prismaprogetti.aimusei.collection.Sintesi;
 import it.prismaprogetti.aimusei.exception.InvalidOpenAIKeyException;
 import it.prismaprogetti.aimusei.model.Disabilita;
 import it.prismaprogetti.aimusei.model.ElaboraTestiDisabilitaRequest;
+import it.prismaprogetti.aimusei.model.TipoDisabilita;
 import it.prismaprogetti.aimusei.repository.OperaRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,13 +41,13 @@ public class BackofficeService {
 		opera.setTag(request.getTag());
 
 		Sintesi sintesiDislessia = new Sintesi();
-		sintesiDislessia.setDisabilita(Disabilita.DISLESSIA.toString());
-		sintesiDislessia.setDescrizione(openAiService.getDislessiaMock());
+		sintesiDislessia.setDisabilita(TipoDisabilita.DISLESSIA);
+		sintesiDislessia.setDescrizioneAI(openAiService.getDislessiaMock());
 		sintesiDislessia.setValidata(false);
 
 		Sintesi sintesiDiscalculia = new Sintesi();
-		sintesiDiscalculia.setDisabilita(Disabilita.DISCALCULIA.toString());
-		sintesiDiscalculia.setDescrizione(openAiService.getDiscalculiaMock());
+		sintesiDiscalculia.setDisabilita(TipoDisabilita.DISCALCULIA);
+		sintesiDiscalculia.setDescrizioneAI(openAiService.getDiscalculiaMock());
 		sintesiDiscalculia.setValidata(false);
 
 		opera.setSintesi(List.of(sintesiDiscalculia, sintesiDislessia));

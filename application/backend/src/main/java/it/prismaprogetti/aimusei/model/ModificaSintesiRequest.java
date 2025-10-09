@@ -7,6 +7,6 @@ public class ModificaSintesiRequest {
 
 	private String tag;
 	private String nuovaSintesi;
-	private Disabilita disabilita;
+	private TipoDisabilita disabilita;
 
 }

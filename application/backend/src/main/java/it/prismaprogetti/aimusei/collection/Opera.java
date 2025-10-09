@@ -7,7 +7,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import it.prismaprogetti.aimusei.model.StatoOpera;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +17,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Opera {
 
 	@Id
@@ -26,7 +29,14 @@ public class Opera {
 	private String hash;
 	private String tag;
 	private LocalDate lastUpdate;
+	//TODO Rimuovuere le sintesi con suffisso _NEW
 	private List<Sintesi> sintesi;
+	private StatoOpera statoOpera;
+	private boolean latest;
+	
+	private String validator;
+	
+	private String engineLLM;
 	
 	
 	

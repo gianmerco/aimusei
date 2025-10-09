@@ -41,10 +41,12 @@ public class OperaService {
 		}
 		Opera opera = optional.get();
 		List<Sintesi> sintesi = opera.getSintesi();
+		
 		for (Sintesi sintesi2 : sintesi) {
-			if (sintesi2.getDescrizione().equals(request.getDisabilita().toString())) {
+			if (sintesi2.getDisabilita().equals(request.getDisabilita().toString())) {
 				log.debug("Modifying Sintesi: {} with new description: {}", sintesi2, request.getNuovaSintesi());
-				sintesi2.setDescrizione(request.getNuovaSintesi());
+				sintesi2.setDescrizioneReviewed(request.getNuovaSintesi());
+				break;
 			}
 		}
 		repository.save(opera);
