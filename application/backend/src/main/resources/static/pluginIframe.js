@@ -2,8 +2,12 @@
 
   function IframePlugin(options) {
     this.options = Object.assign({
+      //local config
       pathIcon: './lib/plugin',   // icon default path 
       urlIframe: 'http://localhost:4200'
+      //cluster config
+      //pathIcon: 'http://aimusei.local/aimusei/api',   // icon default path 
+      //urlIframe: 'http://aimusei.local/aimusei/'
     }, options || {});
 
     this.iconBtnMap = new Map();
