@@ -2,8 +2,8 @@
 
   function IframePlugin(options) {
     this.options = Object.assign({
-      pathIcon: 'http://aimusei.local/aimusei/api',   // icon default path 
-      urlIframe: 'http://aimusei.local/aimusei/'
+      pathIcon: './lib/plugin',   // icon default path 
+      urlIframe: 'http://localhost:4200'
     }, options || {});
 
     this.iconBtnMap = new Map();
@@ -192,29 +192,19 @@
 
  IframePlugin.prototype.executeIframePluginDivInput = function () {
   console.log("Observer DOM scanning for tag div[editor] e input[editor]...");
-  
-  //const editors = Array.from(document.querySelectorAll('div[editor="iframe"], input[editor="iframe"]')).filter(el => window.getComputedStyle(el).display !== 'none');
-  
-const allEditors = document.querySelectorAll('div[editor="iframe"], input[editor="iframe"]');
 
-const editors = Array.from(allEditors).filter(el => {
-  // trova un ancestor con style display:none
-  const hiddenAncestor = el.closest('[style*="display:none"], [style*="display: none"]');
-  return !hiddenAncestor; // tieni solo quelli visibili
-});
-  
+  const editors = document.querySelectorAll('div[editor="iframe"], input[editor="iframe"]');
+
   editors.forEach((editor, index) => {
     const tag = editor.getAttribute('tag') || `AUTO_TAG_${index}`;
     const status = editor.getAttribute('text-status') || 'NEW';
 
+    // skip duplicates 
     if (editor.getAttribute('textarea-link') != null) return;
 
     console.log(`Found editor [${tag}], attaching pluginIframe button`);
 
     // wrapper bottone
-    const wrapper = document.createElement('div');
-    wrapper.className = 'd-flex align-items-center gap-3 mb-1';
- 
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'btn btn-link';
@@ -222,7 +212,7 @@ const editors = Array.from(allEditors).filter(el => {
     button.style.padding = '0';
     button.style.borderRadius = '20%';
     editor.setAttribute('textarea-link', 'exampleModalAngular');
- 
+
     const icon = document.createElement('img');
     icon.id = this._ICONBTN_ + tag;
     icon.alt = 'Icona stato';
@@ -240,60 +230,60 @@ const editors = Array.from(allEditors).filter(el => {
     icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
 
     this.iconBtnMap.set(tag, icon);
-
-    // click handler
-    button.onclick = () => {
-      let extractedText ="";
-	  let paragraphs = null;
-      window.currentEditor = editor;
-		if (editor.tagName.toLowerCase() === "input") {
-		    extractedText = editor.value;
-		}
-		else {
-	        paragraphs = editor.querySelectorAll('p');
-			//workaround rimozione tag nel testo
-			 extractedText = Array.from(paragraphs)
-			.map(p => p.innerText.trim())
-			.filter(t => t.length > 0)
-			.join("\n\n");
-		} 
-      console.log("Extracted text for iframe:", extractedText);
  
+    button.onclick = () => {
+      let extractedText = "";
+      let paragraphs = null;
+      window.currentEditor = editor;
+      if (editor.tagName.toLowerCase() === "input") {
+        extractedText = editor.value;
+      } else {
+        paragraphs = editor.querySelectorAll('p');
+        extractedText = Array.from(paragraphs)
+          .map(p => p.innerText.trim())
+          .filter(t => t.length > 0)
+          .join("\n\n");
+      }
+      console.log("Extracted text for iframe:", extractedText);
+
       this.openModal();
       this.messageToIframe(tag, extractedText);
     };
 
     button.appendChild(icon);
-    //wrapper.appendChild(button);
- 
-    //editor.parentNode.insertBefore(wrapper, editor);
-    //if (field.tagName.toLowerCase() === "input") {
+	let toolbar = null;
+	 if (editor.tagName.toLowerCase() === "input") { 
+       //find input wrapper item closest
+       toolbar = editor.closest('.v-input__control')?.querySelector('.v-input__slot');
+	   console.log(`Matched wrapper [${tag}] for Input`, toolbar);
 
-	  // --- nuovo blocco v-tabs__div ---
-    const newDiv = document.createElement('div');
-    newDiv.setAttribute('data-btn-iframe', '');
-    newDiv.className = 'v-tabs__div';
-    newDiv.appendChild(button);
-    
-    // cerca il contenitore .v-tabs relativo a questo editor
-    const vTabs = editor.closest('.v-window')?.previousElementSibling?.closest('.v-tabs');
-    if (vTabs) {
-    const tabsContainer = vTabs.querySelector('.v-tabs__container');
-    if (tabsContainer) {
- 	   tabsContainer.appendChild(newDiv);
- 	   console.log(`Added button inside .v-tabs for TAG: ${tag}`);
+	 } else {
+       // find toolbar closest 
+       toolbar = editor.closest('.quillWrapper')?.querySelector('.ql-toolbar.ql-snow');
+	   	   console.log(`Matched wrapper [${tag}] for Toolbar`, toolbar);
+	 }
+    if (toolbar) {
+      // avoid duplicates 
+      if (toolbar.querySelector(`#${this._ICONBTN_ + tag}`)) {
+        console.log(`Bottone already exist for TAG: ${tag}`);
+        return;
+      }
+ 
+      const span = document.createElement('span');
+      span.className = 'ql-formats';
+      span.appendChild(button);
+
+      toolbar.appendChild(span);
+      console.log(`Added button inside Quill toolbar for TAG: ${tag}`);
     } else {
- 	   console.warn("Nessun .v-tabs__container trovato per", tag);
+      console.warn(`Nessuna toolbar Quill trovata per TAG: ${tag}`);
     }
-    } else {
-    console.warn("Nessun .v-tabs trovato per", tag);
-    }
-	    
-      //wrapper.appendChild(button);
-      //textarea.parentNode.insertBefore(wrapper, textarea);
-      console.log("added Iframe link for tag html: "+editor.tagName.toLowerCase()+" by IFRAME-TAG:" + tag);
+
+    console.log(`added Iframe link for tag html: ${editor.tagName.toLowerCase()} by IFRAME-TAG: ${tag}`);
   });
 };
+ 
+ ////
 
   IframePlugin.prototype.addObserverContentBody = function () {
     const observer = new MutationObserver(() => {
@@ -310,37 +300,51 @@ const editors = Array.from(allEditors).filter(el => {
 	  attributeFilter: ['style']   
 });
   }
+ IframePlugin.prototype.cleanupRemovedEditors = function () {
+  console.log("Cleaning orphaned iframe buttons...");
  
-	IframePlugin.prototype.cleanupRemovedEditors = function () {
-	  console.log("🧹 Avvio pulizia bottoni orfani...");
+  const existingTags = Array.from(
+    document.querySelectorAll('div[editor="iframe"], input[editor="iframe"], textarea[editor="iframe"]')
+  )
+    .map(el => el.getAttribute('tag'))
+    .filter(Boolean);
 
-	  // Lista di tag effettivamente presenti nel DOM
-	  const activeTags = Array.from(
-		document.querySelectorAll('div[editor="iframe"], input[editor="iframe"], textarea[editor="iframe"]')
-	  )
-		.filter(el => el.offsetParent !== null) // visibili
-		.map(el => el.getAttribute('tag'))
-		.filter(Boolean);
+  // Scorre la mappa degli iconButton registrati
+  this.iconBtnMap.forEach((iconElement, tag) => {
+    if (!existingTags.includes(tag)) {
+      console.warn(`🗑️ Removing orphaned button for tag: ${tag}`);
 
-	  // Scorri la mappa delle icone salvate
-	  this.iconBtnMap.forEach((iconElement, tag) => {
-		// se il tag non è più presente tra gli attivi
-		if (!activeTags.includes(tag)) {
-		  console.warn(`Rimozione bottone su tag eliminato: ${tag}`);
-		  
+      // Cerca l'immagine nel DOM tramite id esatto
+      const iconId = `${this._ICONBTN_}${tag}`;
+      const imgElement = document.getElementById(iconId);
+
+      if (imgElement) {
+        // trova il container "reale" del bottone
+        const buttonContainer =
+          imgElement.closest('[data-btn-iframe]') || // caso v-tabs
+          imgElement.closest('button')?.parentElement || // caso dentro un <span>
+          imgElement.parentElement; // fallback finale
+
+        if (buttonContainer && buttonContainer.parentElement) {
+          buttonContainer.remove();
+          console.log(`Removed DOM container for ${iconId}`);
+        } else {
+          console.warn(`No container found for ${iconId}`);
+          imgElement.remove(); // fallback: elimina solo l’immagine
+        }
+      } else {
+        console.warn(`⚠️ Image not found for tag: ${tag}`);
+      }
+
+      // Rimuove il riferimento dalla mappa
+      this.iconBtnMap.delete(tag);
+    }
+  });
+
+  console.log(`Cleanup completed. Active buttons: ${this.iconBtnMap.size}`);
+};
 
 
-		  // trova il contenitore button -> div[data-btn-iframe]
-		  const buttonContainer = iconElement.closest('div[data-btn-iframe]');
-		  if (buttonContainer) {
-			buttonContainer.remove(); // rimuovi il bottone dal DOM
-		  }
-
-		  // rimuovi l’entry dalla mappa
-		  this.iconBtnMap.delete(tag);
-		}
-	  });
-	};
 
   IframePlugin.prototype.openModal = function () {
 	  //const modal = document.getElementById("exampleModalAngular");
@@ -483,5 +487,3 @@ const editors = Array.from(allEditors).filter(el => {
   global.IframePlugin = IframePlugin;
 
 })(window);
-
- 
