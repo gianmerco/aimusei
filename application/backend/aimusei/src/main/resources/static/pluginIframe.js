@@ -255,7 +255,7 @@
     button.appendChild(icon);
 	let toolbar = null;
 	 if (editor.tagName.toLowerCase() === "input") { 
-       //find input wrapper item closest
+      // find input wrapper item closest
       // toolbar = editor.closest('.v-input__control')?.querySelector('.v-input__slot');
       toolbar = editor.parentElement;
 	   console.log(`Matched wrapper [${tag}] for Input`, toolbar);

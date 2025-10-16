@@ -1,0 +1,809 @@
+{
+	"openapi": "3.0.1",
+	"info": {
+		"title": "OpenAPI definition",
+		"version": "v0"
+	},
+	"servers": [
+		{
+			"url": "http://aimusei.local/aimusei/api",
+			"description": "Generated server url"
+		}
+	],
+	"paths": {
+		"/texts/revise": {
+			"put": {
+				"tags": [
+					"accessibility-controller"
+				],
+				"operationId": "reviseText",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TextHashValidateRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/texts/generate": {
+			"post": {
+				"tags": [
+					"accessibility-controller"
+				],
+				"operationId": "generateSimplifiedTexts",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TextGeneratedRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/TextGeneratedResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/public/texts/massive": {
+			"post": {
+				"tags": [
+					"public-controller"
+				],
+				"operationId": "getMassiveTexts",
+				"parameters": [
+					{
+						"name": "Accept-Language",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "X-TipoSemplificato",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"DISCALCULIA",
+								"DISLESSIA",
+								"EASY_TO_READ"
+							]
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TextListRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/MassiveTextsResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/modificaSintesi": {
+			"post": {
+				"tags": [
+					"backoffice-controller"
+				],
+				"operationId": "modificaSintesi",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ModificaSintesiRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/modificaFlagSintesi": {
+			"post": {
+				"tags": [
+					"backoffice-controller"
+				],
+				"operationId": "modificaFlagSintesi",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ModificaFlagSintesiRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/modificaDescrizione": {
+			"post": {
+				"tags": [
+					"backoffice-controller"
+				],
+				"operationId": "modificaDescrizione",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ModificaSintesiRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/elaboraTestiDisabilita": {
+			"post": {
+				"tags": [
+					"backoffice-controller"
+				],
+				"operationId": "elaboraTestiDisabilita",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ElaboraTestiDisabilitaRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object",
+									"additionalProperties": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/cache/texts/cache/check": {
+			"post": {
+				"tags": [
+					"cache-controller"
+				],
+				"operationId": "checkCacheByHash",
+				"parameters": [
+					{
+						"name": "Authorization",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"additionalProperties": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/texts/validate": {
+			"patch": {
+				"tags": [
+					"accessibility-controller"
+				],
+				"operationId": "validateText",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/HashValidateRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/texts/getOriginalText": {
+			"get": {
+				"tags": [
+					"accessibility-controller"
+				],
+				"operationId": "getOriginalText",
+				"parameters": [
+					{
+						"name": "tag",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "originalText",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/TextOriginalResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/getSintesi": {
+			"get": {
+				"tags": [
+					"user-controller"
+				],
+				"operationId": "getSintesiOpera",
+				"parameters": [
+					{
+						"name": "tag",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "disabilita",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"DISCALCULIA",
+								"DISLESSIA",
+								"EASY_TO_READ",
+								"DISCALCULIA_NEW",
+								"DISLESSIA_NEW",
+								"EASY_TO_READ_NEW"
+							]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/getOpera": {
+			"get": {
+				"tags": [
+					"backoffice-controller"
+				],
+				"operationId": "getDescrizioneOpera",
+				"parameters": [
+					{
+						"name": "tag",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "object"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/getDescrizioneOpera": {
+			"get": {
+				"tags": [
+					"user-controller"
+				],
+				"operationId": "getDescrizioneOpera_1",
+				"parameters": [
+					{
+						"name": "tag",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/elabora": {
+			"get": {
+				"tags": [
+					"user-controller"
+				],
+				"operationId": "elabora",
+				"parameters": [
+					{
+						"name": "titolo",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "disabilita",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"TextHashValidateRequest": {
+				"type": "object",
+				"properties": {
+					"sintesi": {
+						"type": "string",
+						"enum": [
+							"DISCALCULIA",
+							"DISLESSIA",
+							"EASY_TO_READ"
+						]
+					},
+					"tag": {
+						"type": "string"
+					},
+					"hash": {
+						"type": "string"
+					},
+					"text": {
+						"type": "string"
+					}
+				}
+			},
+			"TextGeneratedRequest": {
+				"type": "object",
+				"properties": {
+					"tag": {
+						"type": "string"
+					},
+					"originalText": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"SimplifiedText": {
+				"type": "object",
+				"properties": {
+					"tipo": {
+						"type": "string",
+						"enum": [
+							"DISCALCULIA",
+							"DISLESSIA",
+							"EASY_TO_READ"
+						]
+					},
+					"text": {
+						"type": "string"
+					},
+					"generator": {
+						"type": "string"
+					},
+					"validator": {
+						"type": "string"
+					},
+					"dateInsert": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"dateValidation": {
+						"type": "string",
+						"format": "date-time"
+					}
+				}
+			},
+			"TextGeneratedResponse": {
+				"type": "object",
+				"properties": {
+					"engineLLM": {
+						"type": "string"
+					},
+					"textVersion": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hashCode": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"textSimplified": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/SimplifiedText"
+						}
+					}
+				}
+			},
+			"TagHashRequest": {
+				"type": "object",
+				"properties": {
+					"tag": {
+						"type": "string"
+					},
+					"hash": {
+						"type": "string"
+					}
+				}
+			},
+			"TextListRequest": {
+				"type": "object",
+				"properties": {
+					"tagHashRequest": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/TagHashRequest"
+						}
+					}
+				}
+			},
+			"MassiveTextsResponse": {
+				"type": "object",
+				"properties": {
+					"results": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/TextHashedResponse"
+						}
+					},
+					"meta": {
+						"$ref": "#/components/schemas/MetaMassiveTexts"
+					}
+				}
+			},
+			"MetaMassiveTexts": {
+				"type": "object",
+				"properties": {
+					"lang": {
+						"type": "string"
+					},
+					"tipoSemplificato": {
+						"type": "string",
+						"enum": [
+							"DISCALCULIA",
+							"DISLESSIA",
+							"EASY_TO_READ"
+						]
+					},
+					"processed": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"ok": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"failed": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"TextHashedResponse": {
+				"type": "object",
+				"properties": {
+					"tag": {
+						"type": "string"
+					},
+					"hash": {
+						"type": "string"
+					},
+					"validator": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"OK",
+							"MISMATCH",
+							"NOT_FOUND",
+							"ERROR"
+						]
+					},
+					"textGeneratedAI": {
+						"type": "string"
+					},
+					"textRevisioned": {
+						"type": "string"
+					}
+				}
+			},
+			"ModificaSintesiRequest": {
+				"type": "object",
+				"properties": {
+					"tag": {
+						"type": "string"
+					},
+					"nuovaSintesi": {
+						"type": "string"
+					},
+					"disabilita": {
+						"type": "string",
+						"enum": [
+							"DISCALCULIA",
+							"DISLESSIA",
+							"EASY_TO_READ"
+						]
+					}
+				}
+			},
+			"ModificaFlagSintesiRequest": {
+				"type": "object",
+				"properties": {
+					"tag": {
+						"type": "string"
+					},
+					"validata": {
+						"type": "boolean"
+					},
+					"disabilita": {
+						"type": "string",
+						"enum": [
+							"DISCALCULIA",
+							"DISLESSIA",
+							"EASY_TO_READ",
+							"DISCALCULIA_NEW",
+							"DISLESSIA_NEW",
+							"EASY_TO_READ_NEW"
+						]
+					}
+				}
+			},
+			"ElaboraTestiDisabilitaRequest": {
+				"type": "object",
+				"properties": {
+					"titolo": {
+						"type": "string"
+					},
+					"descrizione": {
+						"type": "string"
+					},
+					"tag": {
+						"type": "string"
+					},
+					"disabilita": {
+						"uniqueItems": true,
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"DISCALCULIA",
+								"DISLESSIA",
+								"EASY_TO_READ",
+								"DISCALCULIA_NEW",
+								"DISLESSIA_NEW",
+								"EASY_TO_READ_NEW"
+							]
+						}
+					}
+				}
+			},
+			"HashValidateRequest": {
+				"type": "object",
+				"properties": {
+					"sintesi": {
+						"type": "string",
+						"enum": [
+							"DISCALCULIA",
+							"DISLESSIA",
+							"EASY_TO_READ"
+						]
+					},
+					"tag": {
+						"type": "string"
+					},
+					"hash": {
+						"type": "string"
+					}
+				}
+			},
+			"TextOriginalResponse": {
+				"type": "object",
+				"properties": {
+					"engineLLM": {
+						"type": "string"
+					},
+					"textVersion": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"hashCode": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"textSimplified": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/SimplifiedText"
+						}
+					},
+					"hashMatch": {
+						"type": "boolean"
+					}
+				}
+			}
+		}
+	}
+}
