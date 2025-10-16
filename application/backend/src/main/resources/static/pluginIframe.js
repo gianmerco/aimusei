@@ -7,7 +7,8 @@
       urlIframe: 'http://localhost:4200'
       //cluster config
       //pathIcon: 'http://aimusei.local/aimusei/api',   // icon default path 
-      //urlIframe: 'http://aimusei.local/aimusei/'
+      //urlIframe: 'http://aimusei.local/aimusei/',
+      observerDom: false
     }, options || {});
 
     this.iconBtnMap = new Map();
@@ -35,7 +36,8 @@
   // Gestione messaggi da iframe
   IframePlugin.prototype.listenMessages = function () {
     window.addEventListener('message', event => {
-      if (event.origin !== this.options.urlIframe || event.data.type !== 'saved') return;
+		//add check this.options.urlIframe.indexOf(event.origin)
+      if (this.options.urlIframe.indexOf(event.origin)>-1 || event.data.type !== 'saved') return;
 
       console.log("Iframe response:", event.data.body);
  
@@ -127,11 +129,11 @@
     this.closeBtn = this.shadowRoot.getElementById("closeAngularModal");
 	    console.log('Iframe modal widget inserted', this.modal);
 
-	//setTimeout(() => {
-    //this.executeIframePluginTextArea();
-    //this.executeIframePluginDivInput();
+	 setTimeout(() => {
+     this.executeIframePluginTextArea();
+     this.executeIframePluginDivInput();
     
-     //}, 500);
+      }, 500);
   };
 
  
@@ -258,7 +260,8 @@
 	let toolbar = null;
 	 if (editor.tagName.toLowerCase() === "input") { 
        //find input wrapper item closest
-       toolbar = editor.closest('.v-input__control')?.querySelector('.v-input__slot');
+      // toolbar = editor.closest('.v-input__control')?.querySelector('.v-input__slot');
+      toolbar = editor.parentElement;
 	   console.log(`Matched wrapper [${tag}] for Input`, toolbar);
 
 	 } else {
@@ -289,21 +292,43 @@
  
  ////
 
+ 
+  
   IframePlugin.prototype.addObserverContentBody = function () {
-    const observer = new MutationObserver(() => {
+        this.observer = new MutationObserver(() => {
       this.executeIframePluginTextArea();
-	  
       this.executeIframePluginDivInput();
       this.cleanupRemovedEditors();
     });
 
-    observer.observe(document.body, {
+        //option default
+		if (this.observerDom)
+			this.startObserver();
+    }
+
+    IframePlugin.prototype.stopObserver = function () {
+        if (this.observer) {
+            this.observer.disconnect();
+            console.log('IframePlugin: MutationObserver stopped successfully.');
+        } else {
+            console.warn('IframePlugin: Observer not available or already stopped.');
+        }
+    }
+
+    IframePlugin.prototype.startObserver = function () {
+        if (this.observer) {
+            this.observer.observe(document.body, {
       childList: true,
       subtree: true,
 	  attributes: true,
 	  attributeFilter: ['style']   
 });
+            console.log('IframePlugin: MutationObserver (re)started successfully.');
+        } else {
+            console.error('IframePlugin: Cannot start, observer instance not found. Was the plugin initialized correctly?');
   }
+    };
+   
  IframePlugin.prototype.cleanupRemovedEditors = function () {
   console.log("Cleaning orphaned iframe buttons...");
  
