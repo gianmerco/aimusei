@@ -12,6 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
+import com.leonardo.aiservice.AIRequest;
+import com.leonardo.aiservice.AIService;
+import com.leonardo.aiservice.AbstractRequest;
+import com.leonardo.aiservice.AbstractResponse;
+import com.leonardo.aiservice.Context;
+
 import it.prismaprogetti.aimusei.collection.Opera;
 import it.prismaprogetti.aimusei.collection.Sintesi;
 import it.prismaprogetti.aimusei.model.HashValidateRequest;
@@ -34,6 +40,11 @@ public class AccessibilityService {
 
 	@Autowired
 	private OpenAiService openAiService;
+	
+	@Autowired
+	private AIService aiService;
+	
+	private boolean aiServiceActive;
 
 	@SneakyThrows
 	@Transactional
@@ -144,6 +155,38 @@ public class AccessibilityService {
 
 		tipiDisabilita.removeAll(toExclude);
 
+		if(aiServiceActive) {
+		if(tipiDisabilita.remove(TipoDisabilita.CAA)) {
+			Sintesi.builder()
+			  .disabilita(TipoDisabilita.CAA)
+			  .descrizioneAI(prompt + " in CAA.")
+			  .validata(false)
+			  .generator("gpt-4")
+			  .dataInsert(LocalDateTime.now())
+			  .build();
+		}
+		
+		List<Context> cs = new ArrayList<>();
+		tipiDisabilita.forEach(td -> cs.add(Context.fromString(td.toString())));
+		  AbstractRequest req = new AIRequest.Builder()
+                  .input(prompt)
+                  .contexts(cs)
+                  .build();
+		  AbstractResponse resp = aiService.sendRequest(req);
+		  resp.getOutput().forEach((k,v) -> {
+			  Sintesi sintesi = Sintesi.builder()
+					  .disabilita(TipoDisabilita.valueOf(k.name()))
+					  .descrizioneAI(v.getValue().toString())
+					  .validata(false)
+					  .generator("gpt-4")
+					  .dataInsert(LocalDateTime.now())
+					  .build();
+			  sintesiList.add(sintesi);
+			});
+		}
+		else {
+		
+		//OG MOCK
 		for (TipoDisabilita tipo : tipiDisabilita) {
 			try {
 				String descrizioneAI = openAiService.prompt(prompt + " " + tipo.name().toLowerCase() + ".");
@@ -159,7 +202,7 @@ public class AccessibilityService {
 						e);
 			}
 		}
-
+		}
 		return sintesiList;
 	}
 
@@ -210,6 +253,14 @@ public class AccessibilityService {
 		  
 		  operaRepository.save(opera);
 		  return newAiText;
+	}
+
+	public void activeAiService(Boolean activate) {
+		this.aiServiceActive = activate;
+	}
+
+	public Boolean isActiveAiService() {
+		return this.aiServiceActive;
 	}
 
 }

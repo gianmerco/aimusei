@@ -49,17 +49,25 @@ public class PublicService {
 				
 				checkLanguageCoerence(tagHashRequest, acceptLanguage);
 				
-				Optional<Opera> operaOpt = operaRepository.findByTag(tagHashRequest.getTag());
-				if (operaOpt.isPresent()) {
-					opera = operaOpt.get();
+				Optional<Opera> operaByTagOpt = operaRepository.findByTag(tagHashRequest.getTag());
+				if (operaByTagOpt.isPresent()) {
+					opera = operaByTagOpt.get();
 					
 					if (tagHashRequest.getHash().equals(opera.getHash())) {
 						status = Status.OK;
 					} else {
-						status = Status.MISMATCH;
-					}
+						//casistica di caso richiesta hash di versione precedente
+						Optional<Opera> operaByHashOpt= operaRepository.findByHash(tagHashRequest.getHash());
+						if(operaByHashOpt.isPresent()&&operaByHashOpt.get().getTag().equals(tagHashRequest.getTag())) {
+							status = Status.OK;
+							opera=operaByHashOpt.get();
+						}
+						else {
+							status = Status.MISMATCH;
+						}
 					ok++;
-				} else {
+				}
+			} else {
 					status = Status.NOT_FOUND;
 					failed++;
 				}
@@ -75,6 +83,7 @@ public class PublicService {
 				.hash(opera!=null?opera.getHash():null)
 				.validator(opera!=null?opera.getValidator():null)
 				.status(status)
+				.version(opera!=null?opera.getVersion():null)
 				.textGeneratedAI(opera!=null?getTextByTipoSemplificato(opera, xTipoSemplificato,false):null)
 				.textRevisioned(opera!=null?getTextByTipoSemplificato(opera, xTipoSemplificato,true):null)
 				.build()

@@ -2,12 +2,14 @@ package it.prismaprogetti.aimusei.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.leonardo.aiservice.AIService;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 
@@ -18,6 +20,9 @@ public class OpenAiService {
 
 	@Value("${aimusei.key}")
 	private String openAIApiKey;
+	
+	@Autowired
+	private AIService aiService;
 
 	private final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
