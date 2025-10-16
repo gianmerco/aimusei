@@ -4,7 +4,6 @@ import { APP_ENVIRONMENT, SessionService } from '../services/session.service';
 import { AppEnvironment } from '../model/env';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { takeWhile } from 'rxjs/operators';
-import { ApiService } from '../services/api.service';
 import { GenerateRequestBody } from '../model/generate-request-body.model';
 import { OriginalText } from '../model/original-text.model';
 import { ValidateRequestBody } from '../model/validate-request-body.model';
@@ -45,6 +44,14 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
       label: 'Supporto numerico semplificato (Discalculia)',
       key: 'DISCALCULIA',
     },
+    {
+      label: 'Testo semplificato (ADHD)',
+      key: 'ADHD',
+    },
+    {
+      label: 'Testo semplificato (CAA)',
+      key: 'CAA',
+    },
   ];
   currentTag: string = '';
   selectedTypes: any[] = [];
@@ -53,9 +60,9 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   lastUpdates: any = {};
   editors: any = {};
   validators: any = {};
-
   validateObj: any = {};
   edit: any = {};
+
   text: string = '';
   funz: string = '';
   tag: string = '';
@@ -63,9 +70,8 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   hashCode: string = '';
 
   constructor(
-    public sessionService: SessionService,
     @Inject(APP_ENVIRONMENT) public env: AppEnvironment,
-    private apiService: ApiService,
+    public sessionService: SessionService,
     private accessibilityService: AccessibilityService
   ) {}
 
@@ -75,8 +81,9 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     window.addEventListener('message', (event) => {
-      // if (event.origin !== 'https://trusted-domain.com') return;
-      const { type, payload } = event.data;
+      const { payload } = event.data;
+      if (!payload) return;
+      console.log('Message received: ', event);
       if (payload?.text && payload?.funz && payload?.tag && payload?.status) {
         this.status = payload.status;
         this.text = payload.text;
@@ -90,47 +97,10 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
           this.validateObj[t.key] = false;
         }
         this.search();
+      } else {
+        this.clearForm();
       }
     });
-  }
-
-  checkType(e: any, type: any) {
-    if (e) {
-      this.selectedTypes.push(type);
-    } else {
-      if (this.selectedTypes.findIndex((x) => x.key == type.key) >= 0)
-        this.selectedTypes.splice(
-          this.selectedTypes.findIndex((x) => x.key == type.key),
-          1
-        );
-    }
-  }
-
-  elabora() {
-    this.results = {};
-    this.selectedTypes = ([] as any[]).concat(this.types);
-    if (this.selectedTypes.length > 0) {
-      this.apiService
-        .elaboraTesto(
-          this.form.value.title,
-          this.form.value.input,
-          this.form.value.tag,
-          this.selectedTypes
-        )
-        .pipe(takeWhile(() => this.alive))
-        .subscribe((res: any) => {
-          this.results = res;
-          for (let key of Object.keys(this.results)) {
-            this.form.get(key)?.patchValue(this.results[key]);
-            this.edit[key] = false;
-            this.validateObj[key] = false;
-          }
-        });
-    }
-  }
-
-  checkTrad() {
-    return this.form.invalid || this.selectedTypes.length == 0;
   }
 
   getResults() {
@@ -151,62 +121,6 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
       return this.form.get(key)?.value?.length > 0;
     }
     return this.validateObj[key];
-  }
-
-  search() {
-    // mantiene il valore del tag attivo
-    let tag = this.form.get('tag')?.value;
-    let title = this.form.get('title')?.value + '';
-    let version = this.form.get('version')?.value + '';
-    this.selectedTypes = ([] as any[]).concat(this.types);
-    this.form.reset();
-    this.form.get('title')?.patchValue(title);
-    this.form.get('version')?.patchValue(version);
-    // this.apiService.getOpera(this.currentTag).pipe(takeWhile(()=>this.alive)).subscribe(res=>{
-    this.accessibilityService
-      .getOriginalText(
-        this.currentTag,
-        this.text
-      )
-      .pipe(takeWhile(() => this.alive))
-      .subscribe((res) => {
-        const req: GenerateRequestBody = {
-          tag: this.currentTag,
-          originalText: this.text,
-          title: title,
-        };
-        if (res && res.textSimplified) {
-          if (!res.hashMatch) {
-            // CASISITICA 2
-            this.accessibilityService
-              .generateSimplifiedTexts(req)
-              .pipe(takeWhile(() => this.alive))
-              .subscribe((resp) => {
-                this.updateView(resp);
-              });
-          } else {
-            // CASISITICA 3
-            if (res.textSimplified.some(t => !t.text)) {
-              this.accessibilityService
-                .generateSimplifiedTexts(req)
-                .pipe(takeWhile(() => this.alive))
-                .subscribe((resp) => {
-                  this.updateView(resp);
-                });
-            } else {
-              this.updateView(res);
-            }
-          }
-        } else {
-          // CASISITICA 1
-          this.accessibilityService
-            .generateSimplifiedTexts(req)
-            .pipe(takeWhile(() => this.alive))
-            .subscribe((resp) => {
-              this.updateView(resp);
-            });
-        }
-      });
   }
 
   revise(key: string) {
@@ -283,7 +197,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         id: 'xyz',
         body: {
           tag: this.currentTag,
-          hash: '4f434few085o64tfgt53', //MOCKED HASH
+          hash: this.hashCode, // HASH
         },
         status: check
           ? this.types.some((t) => !this.validateObj[t.key])
@@ -314,7 +228,63 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     }
   }
 
-  updateView(res: OriginalText) {
+  private search() {
+    // mantiene il valore del tag attivo
+    let tag = this.form.get('tag')?.value;
+    let title = this.form.get('title')?.value + '';
+    let version = this.form.get('version')?.value + '';
+    this.selectedTypes = ([] as any[]).concat(this.types);
+    this.form.reset();
+    this.form.get('title')?.patchValue(title);
+    this.form.get('version')?.patchValue(version);
+    // this.apiService.getOpera(this.currentTag).pipe(takeWhile(()=>this.alive)).subscribe(res=>{
+    this.accessibilityService
+      .getOriginalText(
+        this.currentTag,
+        this.text
+      )
+      .pipe(takeWhile(() => this.alive))
+      .subscribe((res) => {
+        const req: GenerateRequestBody = {
+          tag: this.currentTag,
+          originalText: this.text,
+          title: title,
+        };
+        if (res && res.textSimplified) {
+          if (!res.hashMatch) {
+            // CASISITICA 2
+            this.accessibilityService
+              .generateSimplifiedTexts(req)
+              .pipe(takeWhile(() => this.alive))
+              .subscribe((resp) => {
+                this.updateView(resp);
+              });
+          } else {
+            // CASISITICA 3
+            if (this.types.some(t => !res.textSimplified.includes(t)) || res.textSimplified.some(t => !t.text)) {
+              this.accessibilityService
+                .generateSimplifiedTexts(req)
+                .pipe(takeWhile(() => this.alive))
+                .subscribe((resp) => {
+                  this.updateView(resp);
+                });
+            } else {
+              this.updateView(res);
+            }
+          }
+        } else {
+          // CASISITICA 1
+          this.accessibilityService
+            .generateSimplifiedTexts(req)
+            .pipe(takeWhile(() => this.alive))
+            .subscribe((resp) => {
+              this.updateView(resp);
+            });
+        }
+      });
+  }
+
+  private updateView(res: OriginalText) {
     this.form.get('input')?.setValue(this.text);
     setTimeout(() => {
       this.sessionService.showSpinner = true;
@@ -346,5 +316,22 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         }
       }, 5000);
     }, 500);
+  }
+
+  private clearForm() {
+    this.form.reset();
+    this.currentTag = '';
+    this.selectedTypes = [];
+    this.results = {};
+    this.lastUpdates = {};
+    this.editors = {};
+    this.validators = {};
+    this.validateObj = {};
+    this.edit = {};
+    this.text = '';
+    this.funz = '';
+    this.tag = '';
+    this.status = '';
+    this.hashCode = '';
   }
 }

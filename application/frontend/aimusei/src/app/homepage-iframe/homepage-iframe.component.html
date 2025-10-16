@@ -6,21 +6,6 @@
     </div>
   </div>
   <div class="bg-light px-3 py-4">
-    <!-- <div class="row mx-0 mt-0 mb-3">
-            <div class="col-12 p-0 d-flex align-items-center">
-                <div class="form-group p-0 m-0" style="width: 100%;">
-                    <label for="title" [ngClass]="{'active' : form.get('title')?.value?.length>0}">
-                        Nome del Museo
-                    </label>
-                    <input formControlName="title" class="form-control" id="title">
-                </div>
-                <button class="btn btn-primary rounded px-4 h-100 ms-2 d-flex align-items-center"
-                style="min-width: fit-content; border-radius: 0;" (click)="search()"
-                [disabled]="!form.get('title')?.value || form.get('title')?.value.length==0">
-                    Cerca
-                </button>
-            </div>
-        </div> -->
     <div class="d-flex justify-content-between align-items-center">
       <div class="fw-bold">Descrizione museo</div>
       <div class="d-flex align-items-center gap-3">
@@ -34,9 +19,6 @@
       </div>
     </div>
     <div class="form-group mx-0 mt-3 p-0">
-      <!-- <label for="input" [ngClass]="{'active' : form.get('input')?.value?.length>0}">
-                Descrizione Museo
-            </label> -->
       <textarea
         formControlName="input"
         class="form-control custom-scroll"
@@ -45,23 +27,6 @@
         [readonly]="true"
       ></textarea>
     </div>
-    <!-- <div class="d-flex justify-content-center mt-3">
-            <button class="btn btn-primary" (click)="elabora()"
-            [disabled]="!(form.get('input')?.value?.length>0 && form.get('title')?.value.length>0)">
-                ELABORA TESTO
-            </button>
-        </div> -->
-    <!-- <div class="form-group select-wrapper mt-3 mb-0">
-            <select id="defaultSelect" class="form-control" formControlName="selectedType"
-                [ngClass]="{'disabled' : !form.get('input')?.value || form.get('input')?.value.length==0}">
-                <option [selected]="null" [value]="null">
-                    Selezionare la tipologia di supporto necessario
-                </option>
-                <option *ngFor="let t of types" [value]="t.key">
-                    {{t.label}}
-                </option>
-            </select>
-        </div> -->
     <div *ngIf="getResults().length > 0">
       <div class="accordion mt-3" id="accordionExample">
         <div
@@ -82,7 +47,6 @@
               >
                 <div>
                   {{ t.label }}
-                  <!-- <span *ngIf="lastUpdates[t.key]">(Ultima modifica: {{formatDate(lastUpdates[t.key])}})</span> -->
                 </div>
                 <div class="pos-relative custom-tooltip-container">
                   <mat-icon
@@ -149,6 +113,7 @@
               [formControlName]="t.key"
               rows="10"
             ></textarea>
+            <!-- PULSANTI -->
             <div class="d-flex justify-content-end mt-3 px-3">
               <mat-icon
                 *ngIf="!checkEdit(t.key)"
@@ -197,172 +162,12 @@
                         Invalida
                     </div> -->
             </div>
+            <!-- END PULSANTI -->
           </div>
         </div>
       </div>
     </div>
 
-    <!-- <div *ngIf="false && getResults().length > 0">
-      <div class="mt-3" *ngFor="let t of getResults(); let i = index">
-        <div class="accordion-body py-0">
-          <div class="custom-scroll py-3" *ngIf="!checkEdit(t.key)">
-            {{ form.get(t.key)?.value }}
-          </div>
-        </div>
-        <textarea
-          class="custom-scroll form-control"
-          *ngIf="checkEdit(t.key)"
-          [formControlName]="t.key"
-          rows="10"
-        ></textarea>
-        <div class="d-flex justify-content-end mt-3">
-          <div
-            class="btn btn-primary"
-            *ngIf="!checkEdit(t.key)"
-            (click)="edit[t.key] = true"
-          >
-            Modifica
-          </div>
-          <div
-            class="btn btn-primary"
-            *ngIf="checkEdit(t.key)"
-            (click)="edit[t.key] = false; revise(t.key)"
-          >
-            Salva
-          </div>
-          <div
-            class="btn btn-success ms-2"
-            *ngIf="!checkValidate(t.key)"
-            [ngClass]="{ disabled: checkEdit(t.key) }"
-            (click)="revise(t.key)"
-          >
-            Valida
-          </div>
-          <div
-            class="btn btn-danger ms-2"
-            *ngIf="checkValidate(t.key)"
-            [ngClass]="{ disabled: checkEdit(t.key) }"
-            (click)="revise(t.key)"
-          >
-            Invalida
-          </div>
-        </div>
-      </div>
-    </div> -->
-
-    <!-- <div class="descr-container row m-0 py-4 px-3 pos-relative" *ngIf="false">
-      <div class="form-group col-6 m-0 p-0">
-        <label
-          for="input"
-          [ngClass]="{ active: form.get('input')?.value?.length > 0 }"
-        >
-          Descrizione
-        </label>
-        <textarea
-          formControlName="input"
-          class="form-control custom-scroll"
-          id="input"
-          rows="10"
-        ></textarea>
-      </div>
-      <div class="col-6 d-flex justify-content-center">
-        <div class="d-flex align-items-start flex-column">
-          <label class="p-0"
-            >Selezionare la tipologia di supporto necessario</label
-          >
-          <div class="custom-checkbox form-check mt-3" *ngFor="let t of types">
-            <input
-              [id]="'checkbox_' + t.key"
-              type="checkbox"
-              [formControlName]="'checkbox_' + t.key"
-              (ngModelChange)="checkType($event, t)"
-            />
-            <label [for]="'checkbox_' + t.key">{{ t.label }}</label>
-          </div>
-        </div>
-      </div>
-      <div
-        class="pos-absolute button-elabora px-4 py-3"
-        style="bottom: 0; right: 0"
-        (click)="elabora()"
-        [ngClass]="{ disabled: checkTrad() }"
-      >
-        Elabora testo
-      </div>
-    </div> -->
-    <!-- <div class="my-5 d-flex justify-content-center align-items-center">
-            <button class="btn btn-primary" (click)="elabora()" [disabled]="checkTrad()">
-                Elabora
-            </button>
-        </div> -->
-    <!-- <div class="accordion my-4" *ngIf="false && getResults().length > 0">
-      <div class="accordion-item" *ngFor="let t of getResults(); let i = index">
-        <h2 class="accordion-header" [id]="'heading' + i">
-          <button
-            class="accordion-button collapsed"
-            type="button"
-            data-bs-toggle="collapse"
-            [attr.data-bs-target]="'#collapse' + i"
-            aria-expanded="false"
-            [attr.aria-controls]="'collapse' + i"
-          >
-            {{ t.key | lowercase }}
-          </button>
-        </h2>
-        <div
-          [id]="'collapse' + i"
-          class="accordion-collapse collapse"
-          [attr.aria-labelledby]="'heading' + i"
-        >
-          <div class="accordion-body custom-scroll" *ngIf="!checkEdit(t.key)">
-            {{ form.get(t.key)?.value }}
-          </div>
-          <textarea
-            class="accordion-body custom-scroll form-control"
-            *ngIf="checkEdit(t.key)"
-            [formControlName]="t.key"
-            rows="10"
-          ></textarea>
-          <div
-            class="d-flex justify-content-end"
-            style="background-color: white"
-          >
-            <div
-              class="button-elabora px-4 py-3"
-              style="border-top-right-radius: 20px"
-              *ngIf="!checkEdit(t.key)"
-              (click)="edit[t.key] = true"
-            >
-              Modifica
-            </div>
-            <div
-              class="button-elabora px-4 py-3"
-              style="border-top-right-radius: 20px"
-              *ngIf="checkEdit(t.key)"
-              (click)="edit[t.key] = false; revise(t.key)"
-            >
-              Salva
-            </div>
-            <div
-              class="button-elabora px-4 py-3 ms-2 bg-success"
-              *ngIf="!checkValidate(t.key)"
-              [ngClass]="{ disabled: checkEdit(t.key) }"
-              (click)="revise(t.key)"
-            >
-              Valida
-            </div>
-            <div
-              class="button-elabora px-4 py-3 ms-2 bg-danger"
-              *ngIf="checkValidate(t.key)"
-              [ngClass]="{ disabled: checkEdit(t.key) }"
-              (click)="revise(t.key)"
-            >
-              Invalida
-            </div>
-          </div>
-        </div>
-      </div>
-    </div> -->
   </div>
 
   <div class="d-flex justify-content-end align-items-center mt-3">

@@ -10,19 +10,41 @@ replicaCount: 1
 
 image:
   repository: aptul9/frontend
-  tag: "1.17"
+  tag: "1.18"
   pullPolicy: IfNotPresent
 
 service:
   type: ClusterIP
   port: 80
 
-ingress:
-  enabled: false
-  className: "nginx"
-  host: "aimusei.local"
+ingresses:
+  - enabled: true
+    name: aimusei-ingress-locale
+    className: "nginx"
+    host: "aimusei.local"
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    paths:
+      - path: /aimusei/api/
+        pathType: Prefix
+        serviceName: aimusei-be-service
+        servicePort: 8090
+      - path: /aimusei/
+        pathType: Prefix
+        serviceName: aimusei-fe-service
+        servicePort: 80
 
-  backendPath:
-    enabled: true
-    serviceName: aimusei-be-service
-    servicePort: 8090
+  - enabled: true
+    name: aimusei-ingress-pubblico
+    className: "nginx"
+    host: "api-coll.museiitaliani.it"
+    annotations: {}
+    paths:
+      - path: /aimusei/api
+        pathType: Prefix
+        serviceName: aimusei-be-service
+        servicePort: 8090
+      - path: /aimusei
+        pathType: Prefix
+        serviceName: aimusei-fe-service
+        servicePort: 80

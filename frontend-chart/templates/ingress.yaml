@@ -1,35 +1,34 @@
-{{- /* Abilita l'Ingress solo se ingress.enabled è true in values.yaml */}}
-  {{- if .Values.ingress.enabled -}}
+  {{- range .Values.ingresses }}
+
+  {{- if .enabled }}
+
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.nameBase }}-ingress
-  labels:
-    app: {{ .Values.nameBase }}-frontend
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  {{- if .annotations }}
+  annotations:
+      {{- toYaml .annotations | nindent 4 }}
+  {{- end }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ .className }}
   rules:
-    - host: {{ .Values.ingress.host | quote }}
+    - host: {{ .host | quote }}
       http:
         paths:
-          {{- if .Values.ingress.backendPath.enabled }}
-          # Path per il backend
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Values.ingress.backendPath.serviceName }}
-                port:
-                  number: {{ .Values.ingress.backendPath.servicePort }}
-          {{- end }}
 
-          # Path per il frontend
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Values.nameBase }}-fe-service
-                port:
-                  number: {{ .Values.service.port }}
-  {{- /* CORREZIONE 3: Aggiunto l'end mancante per l'if iniziale */}}
+            {{- range .paths }}
+            - path: {{ .path }}
+              pathType: {{ .pathType }}
+              backend:
+                service:
+                  name: {{ .serviceName }}
+                  port:
+                    number: {{ .servicePort }}
+            {{- end }}
+
+  {{- end }}
+
   {{- end }}
