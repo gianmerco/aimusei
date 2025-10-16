@@ -40,6 +40,17 @@ public class AccessibilityController {
 		TextGeneratedResponse response = accessibilityService.generateSimplifiedTexts(request);
 		return ResponseEntity.ok(response);
 	}
+	
+	@PostMapping("/active-ai-service")
+	public ResponseEntity<?> activeAiService(@RequestBody Boolean activate) {
+		accessibilityService.activeAiService(activate);
+		return ResponseEntity.ok().build();
+	}
+	
+	@GetMapping("/active-ai-service")
+	public ResponseEntity<Boolean> isActiveAiService() {
+		return ResponseEntity.ok(accessibilityService.isActiveAiService());
+	}
 
 //	@GetMapping("/texts/status/{tag}")
 //	public ResponseEntity<?> getTextStatus(@PathVariable String tag,
