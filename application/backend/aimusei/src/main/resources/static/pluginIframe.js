@@ -2,7 +2,7 @@
 
   function IframePlugin(options) {
     this.options = Object.assign({
-	pathIcon: 'https://api-coll.museiitaliani.it/aimusei/api'
+	pathIcon: 'https://api-coll.museiitaliani.it/aimusei/api',
     urlIframe: 'https://api-coll.museiitaliani.it/aimusei/',
       observerDom: false
     }, options || {});
