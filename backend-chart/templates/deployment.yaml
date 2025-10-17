@@ -23,8 +23,10 @@ spec:
                 containerPort: {{ .Values.service.port }}
                 protocol: TCP
             env:
-              - name: SPRING_DATA_MONGODB_URI
-                value: {{ .Values.config.mongoUri | quote }}
+              {{- range $name, $value := .Values.config.envVars }}
+              - name: {{ $name }}
+                value: {{ $value | quote }}
+              {{- end }}
             command:
               - "java"
               - "-jar"
