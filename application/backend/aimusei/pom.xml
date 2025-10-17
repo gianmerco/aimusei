@@ -82,7 +82,7 @@
 
 		<dependency>
 			<groupId>com.leonardo.aiservice</groupId>
-			<artifactId>service</artifactId>
+			<artifactId>aiservice</artifactId>
 			<version>1.0.2</version>
 		</dependency>
 	</dependencies>
