@@ -4,8 +4,8 @@ nameBase: "aimusei"
 replicaCount: 1
 
 image:
-  repository: aptul9/backend
-  tag: "1.18"
+  repository: gianmerco/be
+  tag: "1.3"
   pullPolicy: IfNotPresent
 
 service:
