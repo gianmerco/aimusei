@@ -1,2 +1,4 @@
 /application/backend/src/main/java/it/prismaprogetti/aimusei/collection/*.bak
 /application/backend/src/main/java/it/prismaprogetti/aimusei/repository/*.bak
+!/.idea/aimusei.iml
+!/.idea/modules.xml
