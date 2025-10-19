@@ -28,3 +28,12 @@ config:
     AI_GATEWAY_ENDPOINT: "/aiservice/airequest"
     K8S_CLIENT_SERVICE_ACCOUNT_NAME: "aimusei-sa"
     K8S_CLIENT_NAMESPACE: "aimusei"
+
+serviceAccount:
+  create: true
+  name: "aimusei-sa"
+  automount: true
+
+rbac:
+  create: true
+  createTokenRequester: true

@@ -14,6 +14,7 @@ spec:
       labels:
         app: {{ .Values.nameBase }}-backend
     spec:
+      serviceAccountName: {{ include "chart.serviceAccountName" . }}
       containers:
           - name: be
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
