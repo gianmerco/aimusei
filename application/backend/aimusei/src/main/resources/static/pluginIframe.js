@@ -33,7 +33,7 @@
   IframePlugin.prototype.listenMessages = function () {
     window.addEventListener('message', event => {
 		//add check this.options.urlIframe.indexOf(event.origin)
-      if (this.options.urlIframe.indexOf(event.origin)>-1 || event.data.type !== 'saved') return;
+      if (this.options.urlIframe.indexOf(event.origin)==-1 || event.data.type !== 'saved') return;
 
       console.log("Iframe response:", event.data.body);
  
