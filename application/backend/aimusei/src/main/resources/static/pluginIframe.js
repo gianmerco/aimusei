@@ -369,29 +369,24 @@
   console.log(`Cleanup completed. Active buttons: ${this.iconBtnMap.size}`);
 };
 
+IframePlugin.prototype.openModal = function() {
+   //const modal = this.shadowRoot.querySelector(".modal");
+    const modal = this.modal;
+    modal.classList.add("show");
+    modal.style.display = "flex";
+    modal.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: "forwards" });
+};
 
+IframePlugin.prototype.closeModal = function() {
+   //const modal = this.shadowRoot.querySelector(".modal");
+    const modal = this.modal;
+    const fadeOut = modal.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: "forwards" });
+    fadeOut.onfinish = () => {
+    modal.classList.remove("show");
+    modal.style.display = "none";
+  };
+};
 
-  IframePlugin.prototype.openModal = function () {
-	  //const modal = document.getElementById("exampleModalAngular");
-	    const modal = this.modal;
-	    if (modal) modal.classList.add('show');
-		else alert ("Modal not found");
-	 // const iframe = document.getElementById("widget-iframe"); 
- 
-	}
- 
-  IframePlugin.prototype.closeModal = function ()  {
-		//const modal = document.getElementById("exampleModalAngular");
-		const modal = this.modal;
-	    if (modal) modal.classList.remove('show');
-		else alert ("Modal not found");
-  
-	  // reset src dopo l’animazione (evita che continui a girare in background)
-	  //setTimeout(() => {
-		//iframe.src = "";
-	  //}, 1500);
-	}
- 
   IframePlugin.prototype.addNewTextAreaSection = function () {
     const container = document.querySelector('#dynamic-sections') || document.body;
 
