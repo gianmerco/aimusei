@@ -57,7 +57,7 @@
     });
   }
 
-  // Invio messaggi all’iframe
+  // Invio messaggi all�iframe
   IframePlugin.prototype.messageToIframe = function (tag, description) {
     const iframe = this.iframe 
 	//const iframe = document.getElementById('widget-iframe');
@@ -98,7 +98,7 @@
         <div class="modal-dialog" style="display:content; max-width: 80vw; min-width: 80vw; max-height: 80vh; min-height: 80vh; width: 80vw; height: 80vh;">
           <div class="modal-content" style="height: 100%; width: 100%;">
             <div class="modal-header">
-              <h1 class="modal-title" id="exampleModalLabel">Accessibilità</h1>
+              <h1 class="modal-title" id="exampleModalLabel">Accessibilit�</h1>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeAngularModal">
 			    <svg xmlns="http://www.w3.org/2000/svg" 
 				   viewBox="0 0 16 16" 
@@ -178,7 +178,7 @@
 
       this.iconBtnMap.set(tag, icon);
 
-      // click con arrow function → mantiene il contesto this
+      // click con arrow function mantiene il contesto this
       button.onclick = () => {
         window.currentTextArea = textarea;
 		this.openModal();
@@ -337,7 +337,7 @@
   // Scorre la mappa degli iconButton registrati
   this.iconBtnMap.forEach((iconElement, tag) => {
     if (!existingTags.includes(tag)) {
-      console.warn(`🗑️ Removing orphaned button for tag: ${tag}`);
+      console.warn(`Removing orphaned button for tag: ${tag}`);
 
       // Cerca l'immagine nel DOM tramite id esatto
       const iconId = `${this._ICONBTN_}${tag}`;
@@ -355,10 +355,10 @@
           console.log(`Removed DOM container for ${iconId}`);
         } else {
           console.warn(`No container found for ${iconId}`);
-          imgElement.remove(); // fallback: elimina solo l’immagine
+          imgElement.remove(); // fallback: elimina solo l�immagine
         }
       } else {
-        console.warn(`⚠️ Image not found for tag: ${tag}`);
+        console.warn(`?? Image not found for tag: ${tag}`);
       }
 
       // Rimuove il riferimento dalla mappa
@@ -386,7 +386,7 @@
 	    if (modal) modal.classList.remove('show');
 		else alert ("Modal not found");
   
-	  // reset src dopo l’animazione (evita che continui a girare in background)
+	  // reset src dopo l�animazione (evita che continui a girare in background)
 	  //setTimeout(() => {
 		//iframe.src = "";
 	  //}, 1500);
@@ -408,7 +408,7 @@
                 tag="MUS1-SEZ2-ITA" 
                 editor="iframe"
                 disabled>
-        Questa è una nuova sezione aggiunta dinamicamente per testare il plugin IFrame.
+        Questa � una nuova sezione aggiunta dinamicamente per testare il plugin IFrame.
       </textarea>
     `;
 
