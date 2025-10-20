@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: gianmerco/be
-  tag: "1.3"
+  tag: "1.4"
   pullPolicy: IfNotPresent
 
 service:
@@ -21,3 +21,19 @@ config:
   mongoHost: "mongo-service"
   mongoDatabase: "aimusei"
   forwardHeadersStrategy: NATIVE
+
+  envVars:
+    SPRING_DATA_MONGODB_URI: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000" # puoi anche metterla qui
+    AI_GATEWAY_URI: "http://aigateway-middleware.accessibilita.svc.cluster.local:80"
+    AI_GATEWAY_ENDPOINT: "/aiservice/airequest"
+    K8S_CLIENT_SERVICE_ACCOUNT_NAME: "aimusei-sa"
+    K8S_CLIENT_NAMESPACE: "aimusei"
+
+serviceAccount:
+  create: true
+  name: "aimusei-sa"
+  automount: true
+
+rbac:
+  create: true
+  createTokenRequester: true

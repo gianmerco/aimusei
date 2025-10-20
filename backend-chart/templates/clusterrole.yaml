@@ -1,0 +1,11 @@
+  {{- if .Values.rbac.createTokenRequester -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # Il nome deve essere unico nel cluster
+  name: {{ include "chart.fullname" . }}-token-requester
+rules:
+  - apiGroups: [""]
+    resources: ["serviceaccounts/token"]
+    verbs: ["create"]
+  {{- end }}

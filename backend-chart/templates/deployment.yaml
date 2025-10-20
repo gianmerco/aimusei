@@ -14,6 +14,7 @@ spec:
       labels:
         app: {{ .Values.nameBase }}-backend
     spec:
+      serviceAccountName: {{ include "chart.serviceAccountName" . }}
       containers:
           - name: be
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -23,8 +24,10 @@ spec:
                 containerPort: {{ .Values.service.port }}
                 protocol: TCP
             env:
-              - name: SPRING_DATA_MONGODB_URI
-                value: {{ .Values.config.mongoUri | quote }}
+              {{- range $name, $value := .Values.config.envVars }}
+              - name: {{ $name }}
+                value: {{ $value | quote }}
+              {{- end }}
             command:
               - "java"
               - "-jar"
