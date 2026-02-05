@@ -1,3 +1,14 @@
+/application/backend/aimusei/.metadata/
+/application/backend/target/*
+application/backend/target/*
+application/backend/target/
+application/backend/target
+/application/backend/target
+/application/backend/.settings/
+.vs
+/.vs
+*.bak
+.project
 /application/backend/src/main/java/it/prismaprogetti/aimusei/collection/*.bak
 /application/backend/src/main/java/it/prismaprogetti/aimusei/repository/*.bak
 !/.idea/aimusei.iml
