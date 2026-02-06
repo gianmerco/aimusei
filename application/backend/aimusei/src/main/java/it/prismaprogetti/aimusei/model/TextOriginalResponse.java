@@ -16,7 +16,8 @@ public class TextOriginalResponse extends TextGeneratedResponse {
               generatedResponse.getTextVersion(), 
               generatedResponse.getHashCode(), 
               generatedResponse.getTitle(), 
-              generatedResponse.getTextSimplified());
+              generatedResponse.getTextSimplified(),
+              generatedResponse.isGenerated());
         this.hashMatch = hashMatch;
     }
     

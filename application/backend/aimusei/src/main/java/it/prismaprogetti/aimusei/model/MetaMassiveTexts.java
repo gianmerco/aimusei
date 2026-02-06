@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class MetaMassiveTexts {
 
 	private String lang;
-	private TipoDisabilita tipoSemplificato;
 	private int processed;
 	private int ok;
 	private int failed;

@@ -30,7 +30,7 @@ public class Opera {
 	private String tag;
 	private LocalDate lastUpdate;
 	//TODO Rimuovuere le sintesi con suffisso _NEW
-	private List<Sintesi> sintesi;
+	private Sintesi sintesi;
 	private StatoOpera statoOpera;
 	private boolean latest;
 	

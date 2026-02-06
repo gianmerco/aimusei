@@ -6,12 +6,14 @@ import { BrowserModule } from "@angular/platform-browser";
 import { ErrorDialogComponent } from "./components/error-dialog/error-dialog.component";
 import { HeaderComponent } from "./components/header/header.component";
 import { HeaderMenuComponent } from "./components/header-menu/header-menu.component";
+import { PrettyPipe } from "./pipe/pretty.pipe";
 
 @NgModule({
   declarations: [
     ErrorDialogComponent,
     HeaderComponent,
     HeaderMenuComponent,
+    PrettyPipe
   ],
   imports: [
     MatIconModule,
@@ -29,6 +31,7 @@ import { HeaderMenuComponent } from "./components/header-menu/header-menu.compon
     ErrorDialogComponent,
     HeaderComponent,
     HeaderMenuComponent,
+    PrettyPipe
   ],
   providers: [],
 })

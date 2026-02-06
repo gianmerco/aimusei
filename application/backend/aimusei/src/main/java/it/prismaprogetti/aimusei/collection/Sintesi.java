@@ -2,7 +2,6 @@ package it.prismaprogetti.aimusei.collection;
 
 import java.time.LocalDateTime;
 
-import it.prismaprogetti.aimusei.model.TipoDisabilita;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +14,6 @@ import lombok.NoArgsConstructor;
 public class Sintesi {
 
 	private String generator;
-	private TipoDisabilita disabilita;
 	private String descrizioneAI;
 	private String descrizioneReviewed;
 	private boolean validata;
@@ -24,7 +22,9 @@ public class Sintesi {
 	private LocalDateTime dataValidation; //system date
 	
 
-	
+	public String getLatestDescrizione() {
+		return descrizioneReviewed == null ? descrizioneAI : descrizioneReviewed;
+	}
 	
 	//TODO modifica nomi 
 //	{

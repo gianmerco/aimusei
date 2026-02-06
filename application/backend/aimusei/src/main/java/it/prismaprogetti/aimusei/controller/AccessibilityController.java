@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import it.prismaprogetti.aimusei.model.GenerateImageRequest;
 import it.prismaprogetti.aimusei.model.HashValidateRequest;
 import it.prismaprogetti.aimusei.model.RegenerateSintesiRequest;
 import it.prismaprogetti.aimusei.model.TextGeneratedRequest;
@@ -19,6 +20,8 @@ import it.prismaprogetti.aimusei.model.TextGeneratedResponse;
 import it.prismaprogetti.aimusei.model.TextHashValidateRequest;
 import it.prismaprogetti.aimusei.model.TextOriginalResponse;
 import it.prismaprogetti.aimusei.service.AccessibilityService;
+import it.prismaprogetti.aimusei.service.PDFService;
+import it.prismaprogetti.aimusei.service.SintesiService;
 
 @RestController
 @RequestMapping("/accessibility")
@@ -27,7 +30,13 @@ public class AccessibilityController {
 
 	@Autowired
 	private AccessibilityService accessibilityService;
+	@Autowired
+	private SintesiService sintesiService;
+	@Autowired
+	private PDFService pdfService;
 	
+	// TODO assicurarsi della unicità del tag, due musei diversi che utilizzando uno
+	// stesso tag vanno in conflitto. Valutare se passare insieme anche id museo
 	@GetMapping("/texts/getOriginalText")
 	public ResponseEntity<TextOriginalResponse> getOriginalText(    @RequestParam String tag, 
 		    @RequestParam String originalText) {
@@ -41,15 +50,35 @@ public class AccessibilityController {
 		return ResponseEntity.ok(response);
 	}
 	
+	@PostMapping("/texts/generateImage")
+	public ResponseEntity<byte[]> generateImage(@RequestBody GenerateImageRequest request) {
+		return ResponseEntity.ok(accessibilityService.generateImage(request));
+	}
+	
+	
+//	@PostMapping("/texts/generateImage")
+//	public ResponseEntity<byte[]> generateImage() {
+//		byte[] response = pdfService.generateImagesMock();
+//		
+//		  // Prepara headers per download
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_PDF);
+//        headers.setContentDispositionFormData("attachment", "immagini.pdf");
+//        headers.setContentLength(response.length);
+//        return ResponseEntity.ok()
+//                .headers(headers)
+//                .body(response);
+//	}
+	
 	@PostMapping("/active-ai-service")
 	public ResponseEntity<?> activeAiService(@RequestBody Boolean activate) {
-		accessibilityService.activeAiService(activate);
+		sintesiService.activeAiService(activate);
 		return ResponseEntity.ok().build();
 	}
 	
 	@GetMapping("/active-ai-service")
 	public ResponseEntity<Boolean> isActiveAiService() {
-		return ResponseEntity.ok(accessibilityService.isActiveAiService());
+		return ResponseEntity.ok(sintesiService.isActiveAiService());
 	}
 
 //	@GetMapping("/texts/status/{tag}")

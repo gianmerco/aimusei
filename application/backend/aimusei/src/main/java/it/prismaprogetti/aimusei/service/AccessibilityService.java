@@ -1,10 +1,7 @@
 package it.prismaprogetti.aimusei.service;
 
+
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,23 +9,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import com.leonardo.aiservice.AIRequest;
-import com.leonardo.aiservice.AIService;
-import com.leonardo.aiservice.AbstractRequest;
-import com.leonardo.aiservice.AbstractResponse;
-import com.leonardo.aiservice.Context;
+import com.leonardo.aiservice.AiService;
+import com.leonardo.aiservice.content.EtrText;
+import com.leonardo.aiservice.content.StandardText;
+import com.leonardo.aiservice.request.EtrRequest;
+import com.leonardo.aiservice.request.PictogramsRequest;
+import com.leonardo.aiservice.response.ImageResponse;
+import com.leonardo.aiservice.response.TextResponse;
 
 import it.prismaprogetti.aimusei.collection.Opera;
 import it.prismaprogetti.aimusei.collection.Sintesi;
+import it.prismaprogetti.aimusei.model.GenerateImageRequest;
 import it.prismaprogetti.aimusei.model.HashValidateRequest;
 import it.prismaprogetti.aimusei.model.RegenerateSintesiRequest;
 import it.prismaprogetti.aimusei.model.StatoOpera;
-import it.prismaprogetti.aimusei.model.StatusResponse;
 import it.prismaprogetti.aimusei.model.TextGeneratedRequest;
 import it.prismaprogetti.aimusei.model.TextGeneratedResponse;
 import it.prismaprogetti.aimusei.model.TextHashValidateRequest;
 import it.prismaprogetti.aimusei.model.TextOriginalResponse;
-import it.prismaprogetti.aimusei.model.TipoDisabilita;
 import it.prismaprogetti.aimusei.repository.OperaRepository;
 import lombok.SneakyThrows;
 
@@ -37,62 +35,79 @@ public class AccessibilityService {
 
 	@Autowired
 	private OperaRepository operaRepository;
-
-	@Autowired
-	private OpenAiService openAiService;
 	
 	@Autowired
-	private AIService aiService;
+	private SintesiService sintesiService;
 	
-	private boolean aiServiceActive;
+	@Autowired
+	private AiService aiService;
+	
+	@Autowired
+	private PDFService pdfService;
+	
+	@Autowired
+	private S3Service s3Service;
 
 	@SneakyThrows
 	@Transactional
+/**
+ * Gestione dei seguenti contesti:ETR,INFO_MUSEO;
+ * 
+ * ETR: generazione testo ETR, gestione dello stato nel nostro db del testo semplificato
+ * 
+ * @param request
+ * @return
+ */
 	public TextGeneratedResponse generateSimplifiedTexts(TextGeneratedRequest request) {
 		String hash = DigestUtils.md5DigestAsHex((request.getTag() + "#" + request.getOriginalText()).getBytes());
 
-		Optional<Opera> operaByTagOPT = operaRepository.findByTag(request.getTag());
+		Optional<Opera> operaByTagOPTLatest = operaRepository.findByTag(request.getTag());
 
-		if (operaByTagOPT.isEmpty()) {
+		// Creazione ex novo
+		if (operaByTagOPTLatest.isEmpty()) {
 			Opera operaToInsert = Opera.builder().nome(request.getTitle()).descrizione(request.getOriginalText())
 					.validator("gpt-4").version(0).hash(hash).tag(request.getTag()).lastUpdate(LocalDate.now())
-					.latest(true).statoOpera(StatoOpera.INCOMPLETO).engineLLM("gpt-4").build();
+					.latest(true).engineLLM("gpt-4").build();
 
-			List<Sintesi> sintesis = null;
 			try {
-				sintesis = createSintesi(request.getOriginalText());
+				Sintesi sintesi = sintesiService.createSintesi(request);
 				operaToInsert.setStatoOpera(StatoOpera.GENERATO_AI);
-			} catch (SintesiWrapperException e) {
-				sintesis = e.getSintesiParziali();
+				operaToInsert.setSintesi(sintesi);
 			} catch (Exception e) {
-				throw e;
+				operaToInsert.setStatoOpera(StatoOpera.INCOMPLETO);
 			}
-			operaToInsert.setSintesi(sintesis);
 
 			operaRepository.save(operaToInsert);
 			return TextGeneratedResponse.fromOpera(operaToInsert);
 		}
 
-		if (!hash.equals(operaByTagOPT.get().getHash())) {
-			Opera operaByTag = operaByTagOPT.get();
+		// Aggiornamento versione
+		if (!hash.equals(operaByTagOPTLatest.get().getHash())) {
+			
+			// controllo se hash già esistente, in caso alla vecchia versione cancello
+			// l'hash per evitare collisioni, questa casistica avviene quando si modifica il
+			// testo originale con quello di una versione precedente
+			operaRepository.findByHash(hash).ifPresent(o -> {
+				o.setHash(null);
+				operaRepository.save(o);
+			});
+
+			Opera operaByTag = operaByTagOPTLatest.get();
 
 			operaByTag.setLatest(false);
 			operaByTag.setLastUpdate(LocalDate.now());
 
 			Opera newOperaVersion = Opera.builder().nome(operaByTag.getNome()).descrizione(request.getOriginalText())
 					.version(operaByTag.getVersion() + 1).hash(hash).tag(request.getTag()).lastUpdate(LocalDate.now())
-					.latest(true).statoOpera(StatoOpera.INCOMPLETO).engineLLM("gpt-4").build();
+					.latest(true).engineLLM("gpt-4").build();
 
-			List<Sintesi> sintesis = null;
 			try {
-				sintesis = createSintesi(request.getOriginalText());
+				Sintesi sintesi = sintesiService.createSintesi(request);
 				newOperaVersion.setStatoOpera(StatoOpera.GENERATO_AI);
-			} catch (SintesiWrapperException e) {
-				sintesis = e.getSintesiParziali();
+				newOperaVersion.setSintesi(sintesi);
 			} catch (Exception e) {
-				throw e;
+				newOperaVersion.setStatoOpera(StatoOpera.INCOMPLETO);
 			}
-			newOperaVersion.setSintesi(sintesis);
 
 			operaRepository.save(operaByTag);
 			operaRepository.save(newOperaVersion);
@@ -100,23 +115,19 @@ public class AccessibilityService {
 			return TextGeneratedResponse.fromOpera(newOperaVersion);
 		}
 
-		// hash uguale, ritorno quello esistente, TODO prima effettuo un retry di
+		// hash uguale, ritorno quello esistente, prima effettuo un retry di
 		// generazione sintesi nel caso non fossero tutte presenti
-		Opera opera = operaByTagOPT.get();
-		List<Sintesi> sintesis = null;
+		Opera opera = operaByTagOPTLatest.get();
 
 		try {
-			List<TipoDisabilita> disbilitaToExlude = opera.getSintesi().stream().map(s -> s.getDisabilita()).toList();
-			sintesis = createSintesi(opera.getDescrizione(), disbilitaToExlude);
+			Sintesi sintesi = sintesiService.createSintesi(request);
 			opera.setStatoOpera(StatoOpera.GENERATO_AI);
-		} catch (SintesiWrapperException e) {
-			sintesis = e.getSintesiParziali();
+			opera.setSintesi(sintesi);
 		} catch (Exception e) {
-			throw e;
+			opera.setStatoOpera(StatoOpera.INCOMPLETO);
 		}
-		opera.getSintesi().addAll(sintesis);
+		
 		operaRepository.save(opera);
-
 		return TextGeneratedResponse.fromOpera(opera);
 	}
 
@@ -132,135 +143,65 @@ public class AccessibilityService {
 		return TextOriginalResponse.fromOpera(operaByTagOPT.get(), hashMatch);
 	}
 
-	public StatusResponse getTextStatus(String tag) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	public void reviseText(TextHashValidateRequest request) {
-		updateSintesi(request.getHash(), request.getSintesi(), request.getText());
+		updateSintesi(request.getHash(),  request.getText());
 	}
 
 	public void validateText(HashValidateRequest request) {
-		updateSintesi(request.getHash(), request.getSintesi(), null);
+		updateSintesi(request.getHash(),  null);
 	}
 
-	private List<Sintesi> createSintesi(String prompt) throws SintesiWrapperException {
-		return createSintesi(prompt, new ArrayList<>());
-	}
 
-	private List<Sintesi> createSintesi(String prompt, List<TipoDisabilita> toExclude) throws SintesiWrapperException {
-		List<Sintesi> sintesiList = new ArrayList<>();
-		List<TipoDisabilita> tipiDisabilita = new ArrayList<>(Arrays.asList(TipoDisabilita.values()));
-
-		tipiDisabilita.removeAll(toExclude);
-
-		if(aiServiceActive) {
-		if(tipiDisabilita.remove(TipoDisabilita.CAA)) {
-			Sintesi.builder()
-			  .disabilita(TipoDisabilita.CAA)
-			  .descrizioneAI(prompt + " in CAA.")
-			  .validata(false)
-			  .generator("gpt-4")
-			  .dataInsert(LocalDateTime.now())
-			  .build();
-		}
-		
-		List<Context> cs = new ArrayList<>();
-		tipiDisabilita.forEach(td -> cs.add(Context.fromString(td.toString())));
-		  AbstractRequest req = new AIRequest.Builder()
-                  .input(prompt)
-                  .contexts(cs)
-                  .build();
-		  AbstractResponse resp = aiService.sendRequest(req);
-		  resp.getOutput().forEach((k,v) -> {
-			  Sintesi sintesi = Sintesi.builder()
-					  .disabilita(TipoDisabilita.valueOf(k.name()))
-					  .descrizioneAI(v.getValue().toString())
-					  .validata(false)
-					  .generator("gpt-4")
-					  .dataInsert(LocalDateTime.now())
-					  .build();
-			  sintesiList.add(sintesi);
-			});
-		}
-		else {
-		
-		//OG MOCK
-		for (TipoDisabilita tipo : tipiDisabilita) {
-			try {
-				String descrizioneAI = openAiService.prompt(prompt + " " + tipo.name().toLowerCase() + ".");
-				Sintesi sintesi = Sintesi.builder().disabilita(tipo).descrizioneAI(descrizioneAI).validata(false)
-						.generator("gpt-4").dataInsert(LocalDateTime.now()).build();
-				sintesiList.add(sintesi);
-			} catch (Exception e) {
-				// Creiamo un'eccezione che contiene le sintesi generate fino a ora
-				throw new SintesiWrapperException(
-						"Errore durante la generazione della sintesi per " + tipo + ". Sintesi generate: "
-								+ sintesiList.size(),
-						new ArrayList<>(sintesiList), // Copia della lista corrente
-						e);
-			}
-		}
-		}
-		return sintesiList;
-	}
-
-	private void updateSintesi(String hash, TipoDisabilita tipoDisabilita, String descrizioneReviewed) {
+	private void updateSintesi(String hash, String descrizioneReviewed) {
 		operaRepository.findByHash(hash).ifPresent(opera -> {
-			opera.getSintesi().stream()
-					.filter(sintesi -> sintesi.getDisabilita().equals(tipoDisabilita) && !sintesi.isValidata())
-					.findFirst().ifPresent(sintesi -> {
-						sintesi.setValidata(true);
-						if (descrizioneReviewed != null) {
-							sintesi.setDescrizioneReviewed(descrizioneReviewed);
-						}
-						operaRepository.save(opera);
-					});
+			Sintesi sintesi = opera.getSintesi();
+			sintesi.setValidata(true);
+			if (descrizioneReviewed != null) {
+				sintesi.setDescrizioneReviewed(descrizioneReviewed);
+			}
+			operaRepository.save(opera);
 		});
-	}
-
-	public class SintesiWrapperException extends Exception {
-		private final List<Sintesi> sintesiParziali;
-
-		public SintesiWrapperException(String message, List<Sintesi> sintesiParziali, Throwable cause) {
-			super(message, cause);
-			this.sintesiParziali = sintesiParziali;
-		}
-
-		public List<Sintesi> getSintesiParziali() {
-			return sintesiParziali;
-		}
 	}
 
 	@Transactional
 	@SneakyThrows
 	public String regenerateSintesi(RegenerateSintesiRequest request) {
 
-		  Opera opera = operaRepository.findByHash(request.getHash())
-		            .orElseThrow(() -> new RuntimeException("Opera non trovata"));
-		  
-		  Sintesi sintesiToUpdate = opera.getSintesi().stream()
-		            .filter(sintesi -> sintesi.getDisabilita().equals(request.getSintesi()) && !sintesi.isValidata())
-		            .findFirst()
-		            .orElseThrow(() -> new RuntimeException("Sintesi non trovata"));
-		  
-		  
-		  String newAiText= openAiService.prompt(opera.getDescrizione() + " " + request.getSintesi().name().toLowerCase() + ".");
-		  
-		  sintesiToUpdate.setDescrizioneAI(newAiText);
-		  sintesiToUpdate.setValidata(false);
-		  
-		  operaRepository.save(opera);
-		  return newAiText;
+		Opera opera = operaRepository.findByHash(request.getHash())
+				.orElseThrow(() -> new RuntimeException("Opera non trovata"));
+
+		Sintesi sintesiToUpdate = opera.getSintesi();
+
+		EtrRequest etrRequest = EtrRequest.builder().content(StandardText.builder().value(opera.getDescrizione()).build()).build();
+		String descrizioneAi=null;
+			descrizioneAi=((TextResponse)aiService.sendRequest(etrRequest)).getContent().getValue();
+		
+
+		sintesiToUpdate.setDescrizioneAI(descrizioneAi);
+		sintesiToUpdate.setValidata(false);
+
+		operaRepository.save(opera);
+		return descrizioneAi;
 	}
 
-	public void activeAiService(Boolean activate) {
-		this.aiServiceActive = activate;
+	public byte[] generateImage(GenerateImageRequest request) {
+		Opera opera = operaRepository.findByTag(request.getTag()).orElseThrow();
+		String etr=opera.getSintesi().getLatestDescrizione();
+		
+		PictogramsRequest pictogramsRequest = PictogramsRequest.builder()
+		.content(EtrText.builder()
+				.value(etr)
+				.build()
+				)
+		.build();
+		
+		ImageResponse imageResponse=	((ImageResponse)aiService.sendRequest(pictogramsRequest));
+		
+		byte[] document = pdfService.generateDocument(imageResponse.getContent());
+		
+		s3Service.saveInBucket(document);
+		
+		return document;
 	}
-
-	public Boolean isActiveAiService() {
-		return this.aiServiceActive;
-	}
-
 }

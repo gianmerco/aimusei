@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SimplifiedText {
-	   private TipoDisabilita tipo; // ADHD, DISLESSIA, DISCALCULIA, EASY_TO_READ
 	    private String text;
 	    private String generator;
 	    private String validator;

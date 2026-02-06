@@ -27,32 +27,11 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
       Validators.minLength(1),
     ]),
     selectedType: new FormControl(null, []),
-    version: new FormControl('V4', []),
+    version: new FormControl(null, []),
     tag: new FormControl({ value: null, disabled: true }),
   });
 
-  types: any[] = [
-    {
-      label: 'Testo facilitato (Easy to read)',
-      key: 'EASY_TO_READ',
-    },
-    {
-      label: 'Testo semplificato (Dislessia)',
-      key: 'DISLESSIA',
-    },
-    {
-      label: 'Supporto numerico semplificato (Discalculia)',
-      key: 'DISCALCULIA',
-    },
-    {
-      label: 'Testo semplificato (ADHD)',
-      key: 'ADHD',
-    },
-    {
-      label: 'Testo semplificato (CAA)',
-      key: 'CAA',
-    },
-  ];
+  types: any[] = [];
   currentTag: string = '';
   selectedTypes: any[] = [];
 
@@ -68,6 +47,11 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   tag: string = '';
   status: string = '';
   hashCode: string = '';
+  context: string = '';
+  canGeneratePdf: boolean = false;
+  token: string = '';
+
+  jsonText: any = undefined;
 
   constructor(
     @Inject(APP_ENVIRONMENT) public env: AppEnvironment,
@@ -88,8 +72,15 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         this.status = payload.status;
         this.text = payload.text;
         this.funz = payload.funz;
+        this.token = payload.token;
+        console.log('Token received: ', this.token);
         this.form.get('title')?.setValue(payload.title);
         this.currentTag = payload.tag;
+        this.context = payload.context;
+        this.canGeneratePdf = payload.canGeneratePdf;
+        if (this.context == 'INFO_MUSEO')
+          this.jsonText = JSON.parse(this.text);
+        this.buildTypes();
         for (let t of this.types) {
           this.form.addControl('checkbox_' + t.key, new FormControl(false, []));
           this.form.addControl(t.key, new FormControl(null, []));
@@ -191,22 +182,20 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         elems2.item(i)?.classList.add('collapsed');
       }
     }
-    window.parent.postMessage(
-      {
-        type: 'saved',
-        id: 'xyz',
-        body: {
-          tag: this.currentTag,
-          hash: this.hashCode, // HASH
-        },
-        status: check
-          ? this.types.some((t) => !this.validateObj[t.key])
-            ? 'ai'
-            : 'ok'
-          : 'nok',
+    window.parent.postMessage({
+      type: 'saved',
+      id: 'xyz',
+      body: {
+        tag: this.currentTag,
+        hash: this.hashCode, // HASH
+        context: this.context
       },
-      '*'
-    );
+      status: check
+        ? this.types.some((t) => !this.validateObj[t.key])
+          ? 'ai'
+          : 'ok'
+        : 'nok',
+    }, '*');
   }
 
   checkDisabled() {
@@ -226,6 +215,35 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     } else {
       return '';
     }
+  }
+
+  generaPdf() {
+    this.accessibilityService.generatePdf().subscribe((res) => {
+      const newBlob = new Blob([res], { type: 'application/pdf' });
+      //@ts-ignore
+      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        //@ts-ignore
+        window.navigator.msSaveOrOpenBlob(newBlob);
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(newBlob);
+      link.download = 'immagini.pdf';
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    });
+  }
+
+  viewPdf() {
+    this.accessibilityService.generatePdf().subscribe((res) => {
+      const newBlob = new Blob([res], { type: 'application/pdf' });
+      //@ts-ignore
+      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        //@ts-ignore
+        window.navigator.msSaveOrOpenBlob(newBlob);
+        return;
+      }
+      window.open(window.URL.createObjectURL(newBlob), '_blank');
+    });
   }
 
   private search() {
@@ -249,7 +267,10 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
           tag: this.currentTag,
           originalText: this.text,
           title: title,
+          context: 'ETR'
         };
+        if (this.context)
+          req.context = this.context;
         if (res && res.textSimplified) {
           if (!res.hashMatch) {
             // CASISITICA 2
@@ -261,7 +282,8 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
               });
           } else {
             // CASISITICA 3
-            if (this.types.some(t => !res.textSimplified.includes(t)) || res.textSimplified.some(t => !t.text)) {
+            // if (this.types.some(t => !res.textSimplified.includes(t)) || res.textSimplified.some(t => !t.text)) {
+            if (!res.textSimplified.text) {
               this.accessibilityService
                 .generateSimplifiedTexts(req)
                 .pipe(takeWhile(() => this.alive))
@@ -286,33 +308,36 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
 
   private updateView(res: OriginalText) {
     this.form.get('input')?.setValue(this.text);
+    const date = res.textSimplified.dateInsert ?? new Date();
+    this.form.get('version')?.setValue(`V ${res.textVersion}.${new Date(date).toLocaleDateString()}`);
     setTimeout(() => {
       this.sessionService.showSpinner = true;
       setTimeout(() => {
         this.sessionService.showSpinner = false;
         this.hashCode = res.hashCode;
         if (res.textSimplified) {
+          res.textSimplified.tipo = "EASY_TO_READ";
           this.results = {};
           this.lastUpdates = {};
-          for (let sint of res.textSimplified) {
-            if (sint.tipo) {
-              if (this.selectedTypes.findIndex((x) => x.key == sint.tipo) < 0) {
-                this.form.get('checkbox_' + sint.tipo)?.patchValue(true);
+          // for (let sint of res.textSimplified) {
+            if (res.textSimplified.tipo) {
+              if (this.selectedTypes.findIndex((x) => x.key == res.textSimplified.tipo) < 0) {
+                this.form.get('checkbox_' + res.textSimplified.tipo)?.patchValue(true);
               }
-              this.form.get(sint.tipo)?.patchValue(sint.text);
-              this.results[sint.tipo] = sint.text;
-              this.editors[sint.tipo] = sint.generator;
-              this.validators[sint.tipo] = sint.validator;
-              this.lastUpdates[sint.tipo] = sint.dateInsert
-                ? new Date(sint.dateInsert)
+              this.form.get(res.textSimplified.tipo)?.patchValue(res.textSimplified.text);
+              this.results[res.textSimplified.tipo] = res.textSimplified.text;
+              this.editors[res.textSimplified.tipo] = res.textSimplified.generator;
+              this.validators[res.textSimplified.tipo] = res.textSimplified.validator;
+              this.lastUpdates[res.textSimplified.tipo] = res.textSimplified.dateInsert
+                ? new Date(res.textSimplified.dateInsert)
                 : new Date();
-              this.edit[sint.tipo] = false;
-              this.validateObj[sint.tipo] = sint.validate;
+              this.edit[res.textSimplified.tipo] = false;
+              this.validateObj[res.textSimplified.tipo] = res.textSimplified.validate;
               // if (this.status == 'new') {
               //   this.setValidation(sint.tipo, false);
               // }
             }
-          }
+          // }
         }
       }, 5000);
     }, 500);
@@ -333,5 +358,40 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     this.tag = '';
     this.status = '';
     this.hashCode = '';
+  }
+
+  private buildTypes() {
+    if (true || this.context == 'INFO_MUSEO' || this.context == 'ETR') {
+      this.types = [
+        {
+          label: 'Testo facilitato (Easy to read)',
+          key: 'EASY_TO_READ',
+        }
+      ];
+    }
+    // } else {
+    //   this.types = [
+    //     {
+    //       label: 'Testo facilitato (Easy to read)',
+    //       key: 'EASY_TO_READ',
+    //     },
+    //     {
+    //       label: 'Testo semplificato (Dislessia)',
+    //       key: 'DISLESSIA',
+    //     },
+    //     {
+    //       label: 'Supporto numerico semplificato (Discalculia)',
+    //       key: 'DISCALCULIA',
+    //     },
+    //     {
+    //       label: 'Testo semplificato (ADHD)',
+    //       key: 'ADHD',
+    //     },
+    //     {
+    //       label: 'Testo semplificato (CAA)',
+    //       key: 'CAA',
+    //     },
+    //   ];
+    // }
   }
 }

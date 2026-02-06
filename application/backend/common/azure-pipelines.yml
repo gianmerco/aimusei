@@ -1,0 +1,21 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  name: 'linux-docker-agent-pool'
+
+steps:
+  - task: DownloadSecureFile@1
+    displayName: 'download settings file'
+    name: settingsFile
+    inputs:
+      secureFile: 'settings.xml' 
+  - task: MavenAuthenticate@0
+    displayName: 'Authenticate to Azure Artifacts feed'
+    inputs:
+      artifactsFeeds: 'ai-solution-repository'
+  - script: |
+      mvn -s $(settingsFile.secureFilePath) clean deploy
+    displayName: 'Pubblicazione su ai-solution-repository'

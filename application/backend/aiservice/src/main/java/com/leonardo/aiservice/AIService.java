@@ -1,15 +1,17 @@
 package com.leonardo.aiservice;
 
+import com.leonardo.aiservice.request.AiRequest;
+import com.leonardo.aiservice.response.AiResponse;
+
 /**
- * Interface to interact with the remote AI gateway service. 
- * Allows to send an AbstractRequest, of any type, and returns a generic AbstractResponse. 
- * Users should use the interface and not the subclasses.
+ * rappresenta un servizio ai gateway remoto, cui mandare generiche richieste e ricevere una generica risposta in cambio.
+ * A seconda del tipo di richiesta che mando, otterrò una risposta differente
  */
-public interface AIService {
+public interface AiService {
 
     /**
-     * Sends an AbstractRequest to the service.
-     * @return an abstract response, which depends on the given request
+     * invio una AiRequest generica al gateway.
+     * @return una AiResponse, il cui tipo dipende dalla richiesta in input
      */
-    AbstractResponse sendRequest(AbstractRequest request);
+    AiResponse sendRequest(AiRequest request);
 }

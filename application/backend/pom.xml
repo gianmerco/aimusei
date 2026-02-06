@@ -18,18 +18,18 @@
     <relativePath/>
   </parent>
 
-  <modules>
-    <module>common</module>
-    <module>aiservice</module>
-    <module>aimusei</module>
-  </modules>
+	<modules>
+		<module>common</module>
+		<module>aiservice</module>
+		<module>aimusei</module>
+	</modules>
 
   <properties>
     <java.version>21</java.version>
   </properties>
 
-  <!-- Se usi un repository privato per altre dipendenze, dichiaralo qui -->
-  <!--
+	<!-- Se usi un repository privato per altre dipendenze, dichiaralo qui -->
+	<!--
   <repositories>
     <repository>
       <id>ai-solution-repository</id>
@@ -40,5 +40,5 @@
   </repositories>
   -->
 
-  <!-- Nessun spring-boot-maven-plugin qui -->
+	<!-- Nessun spring-boot-maven-plugin qui -->
 </project>

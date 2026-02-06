@@ -1,8 +1,7 @@
 package it.prismaprogetti.aimusei.model;
 
-import java.util.List;
-
 import it.prismaprogetti.aimusei.collection.Opera;
+import it.prismaprogetti.aimusei.collection.Sintesi;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,21 +17,27 @@ public class TextGeneratedResponse {
 	private int textVersion;
 	private String hashCode;
 	private String title;
-	private List<SimplifiedText> textSimplified;
-	
-	
-	public static TextGeneratedResponse fromOpera(Opera opera) {
-		
-		return TextGeneratedResponse.builder()
-		.engineLLM(opera.getEngineLLM())
-		.textVersion(opera.getVersion())
-		.hashCode(opera.getHash())
-		.textSimplified(opera.getSintesi().stream().map(s ->
-			new SimplifiedText(s.getDisabilita(), s.getDescrizioneReviewed()==null?s.getDescrizioneAI():s.getDescrizioneReviewed(), s.getGenerator(), s.getValidator(), s.getDataInsert(), s.getDataValidation(),s.isValidata())
-		).toList())
-		.title(opera.getNome())
-		.build();
-		
-	}
+	private SimplifiedText textSimplified;
+	private boolean generated;
 
+	public static TextGeneratedResponse fromOpera(Opera opera) {
+
+		Sintesi sintesi = opera.getSintesi();
+
+		TextGeneratedResponseBuilder builder = TextGeneratedResponse.builder()
+				.engineLLM(opera.getEngineLLM())
+				.textVersion(opera.getVersion())
+				.hashCode(opera.getHash())
+				.title(opera.getNome());
+
+		if (sintesi != null) {
+			builder
+			.textSimplified(new SimplifiedText(
+					sintesi.getLatestDescrizione(),
+					sintesi.getGenerator(), sintesi.getValidator(), sintesi.getDataInsert(),
+					sintesi.getDataValidation(), sintesi.isValidata()))
+			.generated(true);
+		}
+		return builder.build();
+	}
 }

@@ -3,17 +3,19 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-	<parent>
+
+    <parent>
 		<groupId>it.prismaprogetti</groupId>
 		<artifactId>aimusei-build</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
-    </parent>
+	</parent>
+
     <groupId>com.leonardo.aiservice</groupId>
     <artifactId>aiservice</artifactId>
     <version>1.0.2</version>
     <name>AI gateway library</name>
-    <description>Libreria per accedere al servizio AIGateway all'interno di un cluster Kubernetes.</description>
+    <description>Starter per accedere al servizio AI Gateway all'interno di un cluster Kubernetes</description>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
@@ -21,19 +23,38 @@
     </properties>
 
     <dependencies>
+        <!-- dipendenze per l'autoconfigure -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- dipendenze delle classi library -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.leonardo.aiservice</groupId>
             <artifactId>common</artifactId>
             <version>1.0.3</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <version>7.4.0</version>
         </dependency>
+
+        <!-- testing -->
         <dependency>
-            <groupId>io.kubernetes</groupId>
-            <artifactId>client-java</artifactId>
-            <version>23.0.0-legacy</version> <!-- to change -->
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-test</artifactId>
+          <scope>test</scope>
         </dependency>
     </dependencies>
 

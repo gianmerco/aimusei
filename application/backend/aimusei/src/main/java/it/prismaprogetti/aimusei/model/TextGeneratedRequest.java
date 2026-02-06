@@ -8,4 +8,10 @@ public class TextGeneratedRequest {
 	private String tag;     
 	private String originalText;
 	private String title;
+	private Context context;
+	
+	
+	public enum Context{
+		ETR,INFO_MUSEO;
+	}
 }

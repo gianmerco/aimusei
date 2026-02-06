@@ -48,4 +48,8 @@ export class AccessibilityService {
   reviseText(body: ReviseRequestBody) {
     return this.http.put(this.env.apiUrl + this.basePath + '/revise', body);
   }
+
+  generatePdf() {
+    return this.http.post(this.env.apiUrl + this.basePath + '/generateImage', {}, { responseType: 'blob' });
+  }
 }

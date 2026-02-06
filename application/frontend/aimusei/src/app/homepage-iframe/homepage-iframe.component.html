@@ -2,30 +2,70 @@
   <div class="d-flex justify-content-between align-items-center">
     <h3>{{ form.get("title")?.value }}</h3>
     <div style="color: red" class="my-2" *ngIf="status == 'new'">
-      Salva le modifiche prima di chiudere la pagina!!!
+      Salva le modifiche prima di chiudere la pagina
     </div>
   </div>
   <div class="bg-light px-3 py-4">
     <div class="d-flex justify-content-between align-items-center">
-      <div class="fw-bold">Descrizione museo</div>
+      <div class="fw-bold">
+        <span>{{ context == 'INFO_MUSEO' ? '' : 'Descrizione museo' }}</span>
+        </div>
       <div class="d-flex align-items-center gap-3">
-        <span>Versione:</span>
-        <select class="form-select" formControlName="version">
-          <option value="V4" selected>V 4.25-06-2025</option>
-          <option value="V3">V 3.24-06-2025</option>
-          <option value="V2">V 2.23-06-2025</option>
-          <option value="V1">V 1.22-06-2025</option>
-        </select>
+        <label for="version" class="form-label">Versione</label>
+        <input type="text" id="version" class="form-control-plaintext rounded px-2" formControlName="version" readonly />
       </div>
     </div>
     <div class="form-group mx-0 mt-3 p-0">
-      <textarea
-        formControlName="input"
-        class="form-control custom-scroll"
-        id="input"
-        rows="10"
-        [readonly]="true"
-      ></textarea>
+      <ng-container *ngIf="context == 'INFO_MUSEO'; else textarea">
+        <!-- <pre [innerHTML]="jsonText | pretty"></pre> -->
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Denominazione</th>
+                <th scope="col">Regione</th>
+                <th scope="col">Comune</th>
+                <th scope="col">Categoria</th>
+                <th scope="col">Ambito interesse</th>
+                <th scope="col">Consigli visita</th>
+                <th scope="col">Info 1</th>
+                <th scope="col">Info 2</th>
+                <th scope="col">Info 3</th>
+                <th scope="col">Museo parte itinerario</th>
+                <th scope="col">Museo parte tour</th>
+                <th scope="col">Note visitatore</th>
+                <th scope="col">Url sito</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ jsonText.denominazione }}</td>
+                <td>{{ jsonText.regione }}</td>
+                <td>{{ jsonText.comune }}</td>
+                <td>{{ jsonText.categoria }}</td>
+                <td>{{ jsonText.ambitoInteresse }}</td>
+                <td>{{ jsonText.consigliVisita }}</td>
+                <td>{{ jsonText.info1 ? 'SI' : 'NO' }}</td>
+                <td>{{ jsonText.info2 ? 'SI' : 'NO' }}</td>
+                <td>{{ jsonText.info3 ? 'SI' : 'NO' }}</td>
+                <td>{{ jsonText.museoParteItinerario ? 'SI' : 'NO' }}</td>
+                <td>{{ jsonText.museoParteTour ? 'SI' : 'NO' }}</td>
+                <td>{{ jsonText.noteVisitatore }}</td>
+                <td>{{ jsonText.urlSito }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+      <ng-template #textarea>
+        <textarea
+          formControlName="input"
+          class="form-control custom-scroll"
+          id="input"
+          rows="10"
+          [readonly]="true"
+        ></textarea>
+      </ng-template>
     </div>
     <div *ngIf="getResults().length > 0">
       <div class="accordion mt-3" id="accordionExample">
@@ -33,144 +73,160 @@
           class="accordion-item"
           *ngFor="let t of getResults(); let i = index"
         >
-          <h2 class="accordion-header">
-            <button
-              class="accordion-button collapsed text-decoration-none"
-              type="button"
-              data-bs-toggle="collapse"
-              [attr.data-bs-target]="'#collapse_' + i"
-              aria-expanded="false"
-              [attr.aria-controls]="'collapse_' + i"
-            >
-              <div
-                class="d-flex justify-content-between align-items-center w-100 gap-2"
+          <ng-container *ngIf="(t.key === 'EASY_TO_READ' && ['ETR', 'INFO_MUSEO'].includes(context)) || !context">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed text-decoration-none"
+                type="button"
+                data-bs-toggle="collapse"
+                [attr.data-bs-target]="'#collapse_' + i"
+                aria-expanded="false"
+                [attr.aria-controls]="'collapse_' + i"
               >
-                <div>
-                  {{ t.label }}
-                </div>
-                <div class="pos-relative custom-tooltip-container">
-                  <mat-icon
-                    style="color: green"
-                    *ngIf="
-                      form.get(t.key)?.value?.length > 0 && checkValidate(t.key)
-                    "
-                    [ngClass]="{ disabled: checkEdit(t.key) }"
-                    >check_circle</mat-icon
-                  >
-                  <mat-icon
-                    style="color: blue"
-                    *ngIf="
-                      form.get(t.key)?.value?.length > 0 &&
-                      !checkValidate(t.key)
-                    "
-                    [ngClass]="{ disabled: checkEdit(t.key) }"
-                    >memory</mat-icon
-                  >
-                  <mat-icon
-                    style="color: red"
-                    *ngIf="!checkValidate(t.key, true)"
-                    [ngClass]="{ disabled: checkEdit(t.key) }"
-                    >cancel</mat-icon
-                  >
-                  <div
-                    class="pos-absolute custom-tooltip bg-white fit-content text-nowrap"
-                  >
-                    <div class="fit-content">
-                      Editor:
-                      {{ editors[t.key] ? editors[t.key] : "Semplificato" }}
-                    </div>
-                    <div class="fit-content">Stato: {{ getStatus(t.key) }}</div>
-                    <div class="fit-content" *ngIf="lastUpdates[t.key]">
-                      Ultima modifica: {{ formatDate(lastUpdates[t.key]) }}
-                    </div>
-                    <div
-                      class="fit-content"
+                <div
+                  class="d-flex justify-content-between align-items-center w-100 gap-2"
+                >
+                  <div>
+                    {{ t.label }}
+                  </div>
+                  <div class="pos-relative custom-tooltip-container">
+                    <mat-icon
+                      style="color: green"
+                      *ngIf="
+                        form.get(t.key)?.value?.length > 0 && checkValidate(t.key)
+                      "
+                      [ngClass]="{ disabled: checkEdit(t.key) }"
+                      >check_circle</mat-icon
+                    >
+                    <mat-icon
+                      style="color: blue"
                       *ngIf="
                         form.get(t.key)?.value?.length > 0 &&
-                        checkValidate(t.key)
+                        !checkValidate(t.key)
                       "
+                      [ngClass]="{ disabled: checkEdit(t.key) }"
+                      >memory</mat-icon
                     >
-                      Validatore: {{ validators[t.key] }}
+                    <mat-icon
+                      style="color: red"
+                      *ngIf="!checkValidate(t.key, true)"
+                      [ngClass]="{ disabled: checkEdit(t.key) }"
+                      >cancel</mat-icon
+                    >
+                    <div
+                      class="pos-absolute custom-tooltip bg-white fit-content text-nowrap"
+                    >
+                      <div class="fit-content">
+                        Editor:
+                        {{ editors[t.key] ? editors[t.key] : "Semplificato" }}
+                      </div>
+                      <div class="fit-content">Stato: {{ getStatus(t.key) }}</div>
+                      <div class="fit-content" *ngIf="lastUpdates[t.key]">
+                        Ultima modifica: {{ formatDate(lastUpdates[t.key]) }}
+                      </div>
+                      <div
+                        class="fit-content"
+                        *ngIf="
+                          form.get(t.key)?.value?.length > 0 &&
+                          checkValidate(t.key)
+                        "
+                      >
+                        Validatore: {{ validators[t.key] }}
+                      </div>
                     </div>
                   </div>
                 </div>
+              </button>
+            </h2>
+            <div
+              [id]="'collapse_' + i"
+              class="accordion-collapse collapse bg-white p-3"
+              data-bs-parent="#accordionExample"
+            >
+              <div class="accordion-body p-0">
+                <div class="custom-scroll py-3" *ngIf="!checkEdit(t.key)" style="white-space: pre-line">
+                  {{ form.get(t.key)?.value }}
+                </div>
               </div>
-            </button>
-          </h2>
-          <div
-            [id]="'collapse_' + i"
-            class="accordion-collapse collapse bg-white p-3"
-            data-bs-parent="#accordionExample"
-          >
-            <div class="accordion-body p-0">
-              <div class="custom-scroll py-3" *ngIf="!checkEdit(t.key)">
-                {{ form.get(t.key)?.value }}
-              </div>
-            </div>
-            <textarea
-              class="custom-scroll form-control"
-              *ngIf="checkEdit(t.key)"
-              [formControlName]="t.key"
-              rows="10"
-            ></textarea>
-            <!-- PULSANTI -->
-            <div class="d-flex justify-content-end mt-3 px-3">
-              <mat-icon
-                *ngIf="!checkEdit(t.key)"
-                (click)="edit[t.key] = true"
-                role="button"
-                title="Modifica"
-                class="primary-color"
-                [ngClass]="
-                  !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0
-                    ? 'disabled'
-                    : ''
-                "
-                >edit</mat-icon
-              >
-              <mat-icon
+              <textarea
+                class="custom-scroll form-control"
                 *ngIf="checkEdit(t.key)"
-                (click)="edit[t.key] = false; revise(t.key)"
-                role="button"
-                title="Salva e valida"
-                style="color: green"
-                [ngClass]="
-                  !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0
-                    ? 'disabled'
-                    : ''
-                "
-                >spellcheck</mat-icon
-              >
-              <mat-icon
-                class="ms-2 primary-color"
-                (click)="regenerate(t.key)"
-                role="button"
-                title="Rigenera"
-                [ngClass]="{ disabled: checkValidate(t.key) }"
-                >refresh</mat-icon
-              >
-              <!-- <mat-icon
-                class="ms-2 primary-color"
-                (click)="validate(t.key)"
-                role="button"
-                title="Valida"
-                [ngClass]="{ disabled: checkEdit(t.key) }"
-                >check</mat-icon
-              > -->
-              <!-- <div class="btn btn-danger ms-2" *ngIf="checkValidate(t.key)"
-                    [ngClass]="{'disabled': checkEdit(t.key)}" (click)="setValidation(t.key)">
-                        Invalida
-                    </div> -->
+                [formControlName]="t.key"
+                rows="10"
+              ></textarea>
+              <!-- PULSANTI -->
+              <div class="d-flex justify-content-end mt-3 px-3">
+                <mat-icon
+                  *ngIf="!checkEdit(t.key)"
+                  (click)="edit[t.key] = true"
+                  role="button"
+                  title="Modifica"
+                  class="primary-color"
+                  [ngClass]="
+                    !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0
+                      ? 'disabled'
+                      : ''
+                  "
+                  >edit</mat-icon
+                >
+                <mat-icon
+                  *ngIf="checkEdit(t.key)"
+                  (click)="edit[t.key] = false; revise(t.key)"
+                  role="button"
+                  title="Salva e valida"
+                  style="color: green"
+                  [ngClass]="
+                    !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0
+                      ? 'disabled'
+                      : ''
+                  "
+                  >spellcheck</mat-icon
+                >
+                <mat-icon
+                  class="ms-2 primary-color"
+                  (click)="regenerate(t.key)"
+                  role="button"
+                  title="Rigenera"
+                  [ngClass]="{ disabled: checkValidate(t.key) }"
+                  >refresh</mat-icon
+                >
+                <!-- <mat-icon
+                  class="ms-2 primary-color"
+                  (click)="validate(t.key)"
+                  role="button"
+                  title="Valida"
+                  [ngClass]="{ disabled: checkEdit(t.key) }"
+                  >check</mat-icon
+                > -->
+                <!-- <div class="btn btn-danger ms-2" *ngIf="checkValidate(t.key)"
+                      [ngClass]="{'disabled': checkEdit(t.key)}" (click)="setValidation(t.key)">
+                          Invalida
+                      </div> -->
+              </div>
+              <!-- END PULSANTI -->
             </div>
-            <!-- END PULSANTI -->
-          </div>
+          </ng-container>
         </div>
       </div>
     </div>
 
   </div>
 
-  <div class="d-flex justify-content-end align-items-center mt-3">
+  <div class="d-flex justify-content-end align-items-center mt-3 gap-2">
+    <!-- <button
+      *ngIf="canGeneratePdf"
+      class="btn btn-outline-primary custom-color-hover"
+      (click)="viewPdf()"
+    >
+      VISUALIZZA PDF
+    </button> -->
+    <button
+      *ngIf="canGeneratePdf"
+      class="btn btn-outline-primary custom-color-hover"
+      (click)="generaPdf()"
+    >
+      GENERA PDF
+    </button>
     <button
       class="btn btn-primary"
       (click)="salva()"

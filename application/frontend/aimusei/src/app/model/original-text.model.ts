@@ -5,6 +5,7 @@ export type OriginalText = {
   textVersion: number;
   hashCode: string;
   title: string;
-  textSimplified: TextSimplified[];
+  // textSimplified: TextSimplified[];
+  textSimplified: TextSimplified;
   hashMatch: boolean;
 }
