@@ -22,7 +22,7 @@ import com.leonardo.aiservice.content.ImageListContent;
 @Service
 public class PDFService {
 	
-	@Value("${images}")
+	@Value("${images:}")
 	private String[] imagesArray;
 	
 	public byte[] generateDocument(ImageListContent content) {

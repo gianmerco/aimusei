@@ -11,6 +11,7 @@ data:
     spring.data.mongodb.uri={{ .Values.config.mongoUri }}
     aimusei.key={{ .Values.config.appKey }}
     logging.level.org.springframework.data.mongodb=DEBUG
+    images={{ .Values.config.images }}
 ---
 apiVersion: v1
 kind: ConfigMap

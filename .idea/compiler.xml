@@ -9,12 +9,13 @@
         <module name="aiservice" />
         <module name="common" />
         <module name="aimusei (1)" />
+        <module name="aimusei" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="aimusei" options="" />
+      <module name="aimusei" options="-parameters" />
       <module name="aimusei (1)" options="-parameters" />
       <module name="aiservice" options="-parameters" />
       <module name="common" options="-parameters" />
