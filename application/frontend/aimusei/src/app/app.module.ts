@@ -10,6 +10,7 @@ import { ImageReaderComponent } from './image-reader/image-reader.component';
 import { HomeWithMenuComponent } from './home-with-menu/home-with-menu.component';
 import { HomepageIframeComponent } from './homepage-iframe/homepage-iframe.component';
 import { APP_BASE_HREF } from '@angular/common';
+import { TestIframeComponent } from './test-iframe/test-iframe.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { APP_BASE_HREF } from '@angular/common';
     HomeComponent,
     ImageReaderComponent,
     HomeWithMenuComponent,
+    TestIframeComponent
   ],
   imports: [
     SharedModule,
