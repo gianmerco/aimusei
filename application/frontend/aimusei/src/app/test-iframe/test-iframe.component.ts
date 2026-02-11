@@ -6,13 +6,13 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./test-iframe.component.css'],
 })
 export class TestIframeComponent implements OnInit {
-  urlIframe: string = "https://api-coll.museiitaliani.it/aimusei/api";
 
   ngOnInit(): void {
     const tag = 'MUS1-SEZ1-ITA';
     const context = 'ETR';
     const canGeneratePdf = false;
     const iconBtn = 'rossa.png';
+    console.log("URL AMBIENTE: ", window.location.href);
     //@ts-ignore
     window.postMessage(
       {
@@ -32,7 +32,7 @@ export class TestIframeComponent implements OnInit {
             : "verified",
         },
       },
-      this.urlIframe
+      window.location.href
     );
   }
 }
