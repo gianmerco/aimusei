@@ -19,6 +19,7 @@ import com.leonardo.aiservice.response.TextResponse;
 
 import it.prismaprogetti.aimusei.collection.Opera;
 import it.prismaprogetti.aimusei.collection.Sintesi;
+import it.prismaprogetti.aimusei.controller.TextStatusResponse;
 import it.prismaprogetti.aimusei.model.GenerateImageRequest;
 import it.prismaprogetti.aimusei.model.HashValidateRequest;
 import it.prismaprogetti.aimusei.model.RegenerateSintesiRequest;
@@ -142,6 +143,21 @@ public class AccessibilityService {
 
 		return TextOriginalResponse.fromOpera(operaByTagOPT.get(), hashMatch);
 	}
+	
+	public TextStatusResponse getTextStatus(String tag, String originalText) {
+		String hash = DigestUtils.md5DigestAsHex((tag + "#" + originalText).getBytes());
+
+		Optional<Opera> operaByTagOPT = operaRepository.findByTag(tag);
+		if (operaByTagOPT.isEmpty()) {
+			return null;
+		}
+		boolean hashMatch = hash.equals(operaByTagOPT.get().getHash());
+		
+		return TextStatusResponse.builder()
+				.hashMatch(hashMatch)
+				.textStatus(operaByTagOPT.get().getStatoOpera())
+				.build();
+	}
 
 
 	public void reviseText(TextHashValidateRequest request) {
@@ -160,6 +176,7 @@ public class AccessibilityService {
 			if (descrizioneReviewed != null) {
 				sintesi.setDescrizioneReviewed(descrizioneReviewed);
 			}
+			opera.setStatoOpera(StatoOpera.REVISIONATO);
 			operaRepository.save(opera);
 		});
 	}
@@ -195,13 +212,13 @@ public class AccessibilityService {
 				.build()
 				)
 		.build();
-		
 		ImageResponse imageResponse=	((ImageResponse)aiService.sendRequest(pictogramsRequest));
 		
 		byte[] document = pdfService.generateDocument(imageResponse.getContent());
 		
-		s3Service.saveInBucket(document);
+		s3Service.saveInBucket(document,request.getIdMuseo());
 		
 		return document;
 	}
+
 }

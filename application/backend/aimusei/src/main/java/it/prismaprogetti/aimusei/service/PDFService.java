@@ -17,91 +17,81 @@ import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.UnitValue;
+import com.leonardo.aiservice.content.ByteArrayImage;
+import com.leonardo.aiservice.content.ImageContent;
 import com.leonardo.aiservice.content.ImageListContent;
 
 @Service
 public class PDFService {
 	
-	@Value("${images:}")
+	@Value("${images}")
 	private String[] imagesArray;
 	
 	public byte[] generateDocument(ImageListContent content) {
-		// TODO
-		return null;
-	}
+		
+		   try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+	        	
 
-    public byte[] generateImagesMock() {
-        
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-        	
-			List<String> images = List.of(imagesArray);
-        	
-            PdfWriter writer = new PdfWriter(baos);
-            PdfDocument pdfDoc = new PdfDocument(writer);
-            Document document = new Document(pdfDoc);
-            
-            // Imposta il formato A4
-            pdfDoc.setDefaultPageSize(PageSize.A4);
-            
-            // Dimensioni delle celle (A4 con margini)
-            float pageWidth = PageSize.A4.getWidth() - 72;
-            float pageHeight = PageSize.A4.getHeight() - 72;
-            
-            float cellWidth = pageWidth / 4;
-            float cellHeight = pageHeight / 8;
-            
-            int imagesPerPage = 32; // 8 row × 4 column
-            int totalImages = images.size();
-            int totalPages = (int) Math.ceil((double) totalImages / imagesPerPage);
-            
-            for (int page = 0; page < totalPages; page++) {
-                if (page > 0) {
-                    document.add(new com.itextpdf.layout.element.AreaBreak());
-                }
-                
-                // Crea una nuova tabella per questa pagina
-                float[] columnWidths = {1f, 1f, 1f, 1f};
-                Table table = new Table(UnitValue.createPercentArray(columnWidths));
-                table.setWidth(UnitValue.createPercentValue(100));
-                
-                int startIndex = page * imagesPerPage;
-                int endIndex = Math.min(startIndex + imagesPerPage, totalImages);
-                
-                // Aggiungi esattamente 32 celle per pagina
-                for (int i = startIndex; i < startIndex + imagesPerPage; i++) {
-                    if (i < endIndex) {
-                        // Cella con immagine
-                        addImageToTable(table, images.get(i), cellWidth, cellHeight);
-                    } else {
-                        // Cella vuota per completare la pagina
-                        Cell emptyCell = createEmptyCell(cellWidth, cellHeight);
-                        table.addCell(emptyCell);
-                    }
-                }
-                
-                document.add(table);
-            }
-            
-            document.close();
-            return baos.toByteArray();
-            
-        } catch (IOException e) {
-            throw new RuntimeException("Errore nella generazione del PDF", e);
-        }
-    }
+			   List<ImageContent> images = content.getValue();
+			   
+	            PdfWriter writer = new PdfWriter(baos);
+	            PdfDocument pdfDoc = new PdfDocument(writer);
+	            Document document = new Document(pdfDoc);
+	            
+	            // Imposta il formato A4
+	            pdfDoc.setDefaultPageSize(PageSize.A4);
+	            
+	            // Dimensioni delle celle (A4 con margini)
+	            float pageWidth = PageSize.A4.getWidth() - 72;
+	            float pageHeight = PageSize.A4.getHeight() - 72;
+	            
+	            float cellWidth = pageWidth / 4;
+	            float cellHeight = pageHeight / 8;
+	            
+	            int imagesPerPage = 32; // 8 row × 4 column
+	            int totalImages = images.size();
+	            int totalPages = (int) Math.ceil((double) totalImages / imagesPerPage);
+	            
+	            for (int page = 0; page < totalPages; page++) {
+	                if (page > 0) {
+	                    document.add(new com.itextpdf.layout.element.AreaBreak());
+	                }
+	                
+	                // Crea una nuova tabella per questa pagina
+	                float[] columnWidths = {1f, 1f, 1f, 1f};
+	                Table table = new Table(UnitValue.createPercentArray(columnWidths));
+	                table.setWidth(UnitValue.createPercentValue(100));
+	                
+	                int startIndex = page * imagesPerPage;
+	                int endIndex = Math.min(startIndex + imagesPerPage, totalImages);
+	                
+	                // Aggiungi esattamente 32 celle per pagina
+	                for (int i = startIndex; i < startIndex + imagesPerPage; i++) {
+	                    if (i < endIndex) {
+	                        // Cella con immagine
+	                        addImageToTable(table, images.get(i), cellWidth, cellHeight);
+	                    } else {
+	                        // Cella vuota per completare la pagina
+	                        Cell emptyCell = createEmptyCell(cellWidth, cellHeight);
+	                        table.addCell(emptyCell);
+	                    }
+	                }
+	                
+	                document.add(table);
+	            }
+	            
+	            document.close();
+	            return baos.toByteArray();
+	            
+	        } catch (IOException e) {
+	            throw new RuntimeException("Errore nella generazione del PDF", e);
+	        }
+	}
     
-    private void addImageToTable(Table table, String base64Image, float cellWidth, float cellHeight) {
+    private void addImageToTable(Table table, ImageContent imageContent, float cellWidth, float cellHeight) {
         try {
-            // Rimuove l'header base64 se presente
-            String imageDataString = base64Image;
-            if (base64Image.contains(",")) {
-                imageDataString = base64Image.split(",")[1];
-            }
-            
-            // Crea l'immagine dal base64
-            ImageData imageData = ImageDataFactory.create(
-                java.util.Base64.getDecoder().decode(imageDataString)
-            );
+            // Crea l'immagine da ImageContent
+			ImageData imageData = ImageDataFactory.create(((ByteArrayImage) imageContent).getValue());
             Image image = new Image(imageData);
             
             // Ridimensiona l'immagine per riempire completamente la cella

@@ -9,6 +9,7 @@ import { OriginalText } from '../model/original-text.model';
 import { ValidateRequestBody } from '../model/validate-request-body.model';
 import { ReviseRequestBody } from '../model/revise-request-body.model';
 import { RegenerateRequestBody } from '../model/regenerate-request-body.model';
+import { TextStatus } from '../model/text-status-response.model';
 
 @Component({
   selector: 'app-homepage-iframe',
@@ -68,6 +69,11 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
       const { payload } = event.data;
       if (!payload) return;
       console.log('Message received: ', event);
+      if (event.data.type == 'status-button') {
+        console.log('check-status-button');
+        this.checkButtonStatus(payload.tag, payload.text);
+        return ;
+      }
       if (payload?.text && payload?.funz && payload?.tag && payload?.status) {
         this.status = payload.status;
         this.text = payload.text;
@@ -358,6 +364,19 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     this.tag = '';
     this.status = '';
     this.hashCode = '';
+  }
+
+  private checkButtonStatus(tag: string, description: string) {
+    this.accessibilityService.getStatus(tag, description).subscribe((resp) => {
+      window.parent.postMessage({
+        type: 'saved',
+        id: 'xyz',
+        body: {
+          tag: tag,
+        },
+        status: resp.textStatus == TextStatus.GENERATO_AI ? 'ai' : (resp.textStatus == TextStatus.REVISIONATO ? 'ok' : 'nok'),
+      }, '*');
+    });
   }
 
   private buildTypes() {

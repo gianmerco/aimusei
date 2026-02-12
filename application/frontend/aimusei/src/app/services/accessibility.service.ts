@@ -8,6 +8,7 @@ import { ValidateRequestBody } from '../model/validate-request-body.model';
 import { ReviseRequestBody } from '../model/revise-request-body.model';
 import { Constants } from '../constants/constants';
 import { RegenerateRequestBody } from '../model/regenerate-request-body.model';
+import { TextStatusResponse } from '../model/text-status-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -51,5 +52,12 @@ export class AccessibilityService {
 
   generatePdf() {
     return this.http.post(this.env.apiUrl + this.basePath + '/generateImage', {}, { responseType: 'blob' });
+  }
+
+  getStatus(tag: string, originalText: string) {
+    let params: HttpParams = new HttpParams();
+    params = params.set('tag', tag);
+    params = params.set('originalText', originalText);
+    return this.http.get<TextStatusResponse>(this.env.apiUrl + this.basePath + '/getStatus', { params });
   }
 }

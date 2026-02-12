@@ -27,6 +27,18 @@
   <properties>
     <java.version>21</java.version>
   </properties>
+  
+  <dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.awspring.cloud</groupId>
+            <artifactId>spring-cloud-aws-dependencies</artifactId>
+            <version>3.4.2</version> <!-- sostituisci con l'ultima versione -->
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
 
 	<!-- Se usi un repository privato per altre dipendenze, dichiaralo qui -->
 	<!--
