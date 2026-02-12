@@ -4,7 +4,7 @@
       {
         pathIcon: "https://api-coll.museiitaliani.it/aimusei/api",
         urlIframe: "https://api-coll.museiitaliani.it/aimusei/",
-      observerDom: false
+        observerDom: false
       },
       options || {}
     );
@@ -12,8 +12,8 @@
     this.iconBtnMap = new Map();
     this._ICONBTN_ = "iconBtn_";
     // this.token = options.token;
-	
-    this.createShadowHost(); 
+
+    this.createShadowHost();
     this.injectCss();
     this.createIframe();
     this.addObserverContentBody();
@@ -22,15 +22,15 @@
   }
 
   // Listener globale su evento chiusura modale
-	 IframePlugin.prototype.addCloseModalClick = function () {
-	   document.addEventListener("DOMContentLoaded", () => {
-		if (this.closeBtn) {
-		    this.closeBtn.addEventListener("click", () => {
-			console.log("Modal chiusa via bottone close");
-			this.closeModal();
-		  });
-		}
-	  });
+  IframePlugin.prototype.addCloseModalClick = function () {
+    document.addEventListener("DOMContentLoaded", () => {
+      if (this.closeBtn) {
+        this.closeBtn.addEventListener("click", () => {
+          console.log("Modal chiusa via bottone close");
+          this.closeModal();
+        });
+      }
+    });
   };
 
   // Gestione messaggi da iframe
@@ -43,7 +43,7 @@
         return;
 
       console.log("Iframe response:", event.data.body);
- 
+
       let elem = this.closeBtn;
       const parsedBody = JSON.parse(JSON.stringify(event.data.body));
       const iconBtn = this.iconBtnMap.get(parsedBody.tag);
@@ -83,27 +83,23 @@
   };
 
   // Invio messaggi all’iframe
-  IframePlugin.prototype.messageToIframe = function (
-    tag,
-    description,
-    context
-  ) {
+  IframePlugin.prototype.messageToIframe = function (tag, description, context, title) {
     const iframe = this.iframe;
-	//const iframe = document.getElementById('widget-iframe');
+    //const iframe = document.getElementById('widget-iframe');
     const iconBtn = this.iconBtnMap.get(tag);
 
     if (iframe && iconBtn) {
       iframe.contentWindow.postMessage(
         {
           type: "init",
-        payload: {
-          text: description,
-          funz: "CREATE",
-          tag: tag,
-            context: context, // verifica se deve impacchettare in json piu campi presi da tag child (indirizzo, categoria, textContent, etc)
+          payload: {
+            text: description,
+            funz: "CREATE",
+            tag: tag,
+            context: context ? context : 'ETR', // verifica se deve impacchettare in json piu campi presi da tag child (indirizzo, categoria, textContent, etc)
             canGeneratePdf: context === "INFO_MUSEO",
             // token: this.token,
-          title: "Title"+tag,
+            title: title ? title : ("Title " + tag),
             status: iconBtn.src.includes("rossa.png")
               ? "new"
               : iconBtn.src.includes("blu.png")
@@ -123,9 +119,9 @@
     if (!this.options.pathIcon) alert("ATTENTION: pathIcon is undefined");
 
     if (document.getElementById("widget-iframe")) return;
- 
-   const divContainer = document.createElement("div");
-    
+
+    const divContainer = document.createElement("div");
+
     divContainer.innerHTML = `<div class="modal fade" id="exampleModalAngular" style="opacity: 1;" tabindex="-1"
         aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" style="display:content; max-width: 80vw; min-width: 80vw; max-height: 80vh; min-height: 80vh; width: 80vw; height: 80vh;">
@@ -151,16 +147,16 @@
           </div>
         </div>
       </div>`;
- 
+
     this.shadowRoot.appendChild(divContainer);
     this.modal = this.shadowRoot.getElementById("exampleModalAngular");
     this.iframe = this.shadowRoot.getElementById("widget-iframe");
     this.closeBtn = this.shadowRoot.getElementById("closeAngularModal");
     console.log("Iframe modal widget inserted", this.modal);
 
-	 setTimeout(() => {
-     this.executeIframePluginTextArea();
-     this.executeIframePluginDivInput();
+    setTimeout(() => {
+      this.executeIframePluginTextArea();
+      this.executeIframePluginDivInput();
       this.executeIframePluginForm();
     }, 800);
   };
@@ -179,7 +175,7 @@
       this.options.urlIframe
     );
   }
-    
+
   IframePlugin.prototype.extractTextForm = function(form, payload, index) {
     form.querySelectorAll("input, textarea, select").forEach((input) => {
       // extractedText += `${input.name || input.id}: ${input.value}\n\n`;
@@ -238,7 +234,7 @@
     }
     return extractedText;
   }
- 
+
   IframePlugin.prototype.executeIframePluginTextArea = function () {
     console.log("Observer DOM scanning for textarea...");
 
@@ -248,17 +244,16 @@
       const tag = textarea.getAttribute("tag") || `AUTO_TAG_${index}`;
       const status = textarea.getAttribute("text-status") || "NEW";
       const id = textarea.id || `textarea-${index}`;
+      const title = textarea.getAttribute("data-title");
+      const context = textarea.getAttribute("context");
 
-      if (textarea.getAttribute("textarea-link") != null) return;
+      if (textarea.getAttribute("textarea-link") != null)
+        return;
 
-      console.log(
-        `Searching in DOM new textarea founded with id=[${id}] applyied pluginIframe`
-      );
+      console.log(`Searching in DOM new textarea founded with id=[${id}] applyied pluginIframe`);
 
       const wrapper = document.createElement("div");
       wrapper.className = "d-flex align-items-center gap-3 mb-1";
-
-      const context = textarea.getAttribute("context");
 
       const button = document.createElement("button");
       button.type = "button";
@@ -295,9 +290,8 @@
       // click con arrow function mantiene il contesto this
       button.onclick = () => {
         window.currentTextArea = textarea;
-        
-		this.openModal();
-        this.messageToIframe(tag, textarea.value, context);
+        this.openModal();
+        this.messageToIframe(tag, textarea.value, context, title);
       };
 
       button.appendChild(icon);
@@ -307,23 +301,26 @@
     });
   };
 
- IframePlugin.prototype.executeIframePluginDivInput = function () {
-  console.log("Observer DOM scanning for tag div[editor] e input[editor]...");
+  IframePlugin.prototype.executeIframePluginDivInput = function () {
+    console.log("Observer DOM scanning for tag div[editor] e input[editor]...");
 
     const editors = document.querySelectorAll(
       'div[editor="iframe"], input[editor="iframe"]'
     );
 
-  editors.forEach((editor, index) => {
+    editors.forEach((editor, index) => {
       const tag = editor.getAttribute("tag") || `AUTO_TAG_${index}`;
       const status = editor.getAttribute("text-status") || "NEW";
+      const title = editor.getAttribute("data-title");
+      const context = editor.getAttribute("context");
 
-    // skip duplicates 
-      if (editor.getAttribute("textarea-link") != null) return;
+      // skip duplicates
+      if (editor.getAttribute("textarea-link") != null)
+        return;
 
-    console.log(`Found editor [${tag}], attaching pluginIframe button`);
+      console.log(`Found editor [${tag}], attaching pluginIframe button`);
 
-    // wrapper bottone
+      // wrapper bottone
       const button = document.createElement("button");
       button.type = "button";
       button.className = "btn btn-link";
@@ -333,83 +330,83 @@
       editor.setAttribute("textarea-link", "exampleModalAngular");
 
       const icon = document.createElement("img");
-    icon.id = this._ICONBTN_ + tag;
+      icon.id = this._ICONBTN_ + tag;
       icon.alt = "Icona stato";
       icon.style.width = "2rem";
       icon.style.height = "2rem";
       icon.setAttribute("textarea-tag", this._ICONBTN_ + tag);
 
-    const statusToColor = {
+      const statusToColor = {
         NEW: "rossa",
         "GENERATED-AI": "blu",
         REVISIONED: "verde",
         NEW_VERSION: "rossa",
-    };
+      };
 
       // check status button
       let extractedText = this.extractTextDiv(editor);
       this.checkStatus(tag, extractedText);
 
       const iconColor = statusToColor[status] || "rossa";
-    icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
+      icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
 
-    this.iconBtnMap.set(tag, icon);
- 
-    button.onclick = () => {
-      window.currentEditor = editor;
-      console.log("Extracted text for iframe:", extractedText);
-      this.openModal();
-      this.messageToIframe(tag, extractedText);
-    };
+      this.iconBtnMap.set(tag, icon);
 
-    button.appendChild(icon);
-	let toolbar = null;
-	 if (editor.tagName.toLowerCase() === "input") { 
-      // find input wrapper item closest
-      // toolbar = editor.closest('.v-input__control')?.querySelector('.v-input__slot');
-      toolbar = editor.parentElement;
-	   console.log(`Matched wrapper [${tag}] for Input`, toolbar);
-	 } else {
-       // find toolbar closest 
+      button.onclick = () => {
+        window.currentEditor = editor;
+        console.log("Extracted text for iframe:", extractedText);
+        this.openModal();
+        this.messageToIframe(tag, extractedText, context, title);
+      };
+
+      button.appendChild(icon);
+      let toolbar = null;
+      if (editor.tagName.toLowerCase() === "input") {
+        // find input wrapper item closest
+        // toolbar = editor.closest('.v-input__control')?.querySelector('.v-input__slot');
+        toolbar = editor.parentElement;
+        console.log(`Matched wrapper [${tag}] for Input`, toolbar);
+      } else {
+        // find toolbar closest
         toolbar = editor
           .closest(".quillWrapper")
           ?.querySelector(".ql-toolbar.ql-snow");
-	   	   console.log(`Matched wrapper [${tag}] for Toolbar`, toolbar);
-	 }
-    if (toolbar) {
-      // avoid duplicates 
-      if (toolbar.querySelector(`#${this._ICONBTN_ + tag}`)) {
-        console.log(`Bottone already exist for TAG: ${tag}`);
-        return;
+        console.log(`Matched wrapper [${tag}] for Toolbar`, toolbar);
       }
- 
+      if (toolbar) {
+        // avoid duplicates
+        if (toolbar.querySelector(`#${this._ICONBTN_ + tag}`)) {
+          console.log(`Bottone already exist for TAG: ${tag}`);
+          return;
+        }
+
         const span = document.createElement("span");
         span.className = "ql-formats";
-      span.appendChild(button);
+        span.appendChild(button);
 
-      toolbar.appendChild(span);
-      console.log(`Added button inside Quill toolbar for TAG: ${tag}`);
-    } else {
-      console.warn(`Nessuna toolbar Quill trovata per TAG: ${tag}`);
-    }
+        toolbar.appendChild(span);
+        console.log(`Added button inside Quill toolbar for TAG: ${tag}`);
+      } else {
+        console.warn(`Nessuna toolbar Quill trovata per TAG: ${tag}`);
+      }
 
-      console.log(
-        `added Iframe link for tag html: ${editor.tagName.toLowerCase()} by IFRAME-TAG: ${tag}`
-      );
-  });
-};
- 
+      console.log(`added Iframe link for tag html: ${editor.tagName.toLowerCase()} by IFRAME-TAG: ${tag}`);
+    });
+  };
+
   IframePlugin.prototype.executeIframePluginForm = function () {
     console.log("Observer DOM scanning for form[editor]...");
 
     const forms = document.querySelectorAll('form[editor="iframe"]');
- 
+
     forms.forEach((form, index) => {
       const tag = form.getAttribute("tag") || `AUTO_TAG_${index}`;
       const status = form.getAttribute("text-status") || "NEW";
+      const title = form.getAttribute("data-title");
 
       // skip duplicates
-      if (form.getAttribute("form-link") != null) return;
+      if (form.getAttribute("form-link") != null)
+        return;
 
       console.log(`Found form [${tag}], attaching pluginIframe button`);
 
@@ -450,7 +447,7 @@
         window.currentEditor = form;
         console.log("Extracted text for iframe:", extractedText);
         this.openModal();
-        this.messageToIframe(tag, extractedText, "INFO_MUSEO");
+        this.messageToIframe(tag, extractedText, "INFO_MUSEO", title);
       };
 
       button.appendChild(icon);
@@ -477,86 +474,84 @@
         console.warn(`Nessuna toolbar Quill trovata per TAG: ${tag}`);
       }
 
-      console.log(
-        `added Iframe link for tag html: ${form.tagName.toLowerCase()} by IFRAME-TAG: ${tag}`
-      );
+      console.log(`added Iframe link for tag html: ${form.tagName.toLowerCase()} by IFRAME-TAG: ${tag}`);
     });
   };
-  
+
   IframePlugin.prototype.addObserverContentBody = function () {
-        this.observer = new MutationObserver(() => {
+    this.observer = new MutationObserver(() => {
       this.executeIframePluginTextArea();
       this.executeIframePluginDivInput();
       this.executeIframePluginForm();
       this.cleanupRemovedEditors();
     });
 
-        //option default
+    //option default
     if (this.observerDom) this.startObserver();
   };
 
-    IframePlugin.prototype.stopObserver = function () {
-        if (this.observer) {
-            this.observer.disconnect();
+  IframePlugin.prototype.stopObserver = function () {
+    if (this.observer) {
+      this.observer.disconnect();
       console.log("IframePlugin: MutationObserver stopped successfully.");
-        } else {
+    } else {
       console.warn("IframePlugin: Observer not available or already stopped.");
     }
   };
 
-    IframePlugin.prototype.startObserver = function () {
-        if (this.observer) {
-            this.observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-	  attributes: true,
+  IframePlugin.prototype.startObserver = function () {
+    if (this.observer) {
+      this.observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
         attributeFilter: ["style"],
-});
+      });
       console.log("IframePlugin: MutationObserver (re)started successfully.");
-        } else {
+    } else {
       console.error(
         "IframePlugin: Cannot start, observer instance not found. Was the plugin initialized correctly?"
       );
-  }
-    };
-   
- IframePlugin.prototype.cleanupRemovedEditors = function () {
-  console.log("Cleaning orphaned iframe buttons...");
- 
-  const existingTags = Array.from(
+    }
+  };
+
+  IframePlugin.prototype.cleanupRemovedEditors = function () {
+    console.log("Cleaning orphaned iframe buttons...");
+
+    const existingTags = Array.from(
       document.querySelectorAll(
         'div[editor="iframe"], input[editor="iframe"], textarea[editor="iframe"]'
-  )
+      )
     )
       .map((el) => el.getAttribute("tag"))
-    .filter(Boolean);
+      .filter(Boolean);
 
-  // Scorre la mappa degli iconButton registrati
-  this.iconBtnMap.forEach((iconElement, tag) => {
-    if (!existingTags.includes(tag)) {
+    // Scorre la mappa degli iconButton registrati
+    this.iconBtnMap.forEach((iconElement, tag) => {
+      if (!existingTags.includes(tag)) {
         console.warn(`🗑️ Removing orphaned button for tag: ${tag}`);
 
-      // Cerca l'immagine nel DOM tramite id esatto
-      const iconId = `${this._ICONBTN_}${tag}`;
-      const imgElement = document.getElementById(iconId);
+        // Cerca l'immagine nel DOM tramite id esatto
+        const iconId = `${this._ICONBTN_}${tag}`;
+        const imgElement = document.getElementById(iconId);
 
-      if (imgElement) {
-        // trova il container "reale" del bottone
-        const buttonContainer =
+        if (imgElement) {
+          // trova il container "reale" del bottone
+          const buttonContainer =
             imgElement.closest("[data-btn-iframe]") || // caso v-tabs
             imgElement.closest("button")?.parentElement || // caso dentro un <span>
-          imgElement.parentElement; // fallback finale
+            imgElement.parentElement; // fallback finale
 
-        if (buttonContainer && buttonContainer.parentElement) {
-          buttonContainer.remove();
-          console.log(`Removed DOM container for ${iconId}`);
-        } else {
-          console.warn(`No container found for ${iconId}`);
+          if (buttonContainer && buttonContainer.parentElement) {
+            buttonContainer.remove();
+            console.log(`Removed DOM container for ${iconId}`);
+          } else {
+            console.warn(`No container found for ${iconId}`);
             imgElement.remove(); // fallback: elimina solo l’immagine
+          }
+        } else {
+          console.warn(`?? Image not found for tag: ${tag}`);
         }
-      } else {
-        console.warn(`?? Image not found for tag: ${tag}`);
-      }
         if (buttonContainer && buttonContainer.parentElement) {
           buttonContainer.remove();
           console.log(`Removed DOM container for ${iconId}`);
@@ -570,13 +565,13 @@
 
       // Rimuove il riferimento dalla mappa
       this.iconBtnMap.delete(tag);
-  });
+    });
 
-  console.log(`Cleanup completed. Active buttons: ${this.iconBtnMap.size}`);
-};
+    console.log(`Cleanup completed. Active buttons: ${this.iconBtnMap.size}`);
+  };
 
-IframePlugin.prototype.openModal = function() {
-   //const modal = this.shadowRoot.querySelector(".modal");
+  IframePlugin.prototype.openModal = function () {
+    //const modal = this.shadowRoot.querySelector(".modal");
     const modal = this.modal;
     modal.classList.add("show");
     modal.style.display = "flex";
@@ -584,20 +579,20 @@ IframePlugin.prototype.openModal = function() {
       duration: 300,
       fill: "forwards",
     });
-};
+  };
 
-IframePlugin.prototype.closeModal = function() {
-   //const modal = this.shadowRoot.querySelector(".modal");
+  IframePlugin.prototype.closeModal = function () {
+    //const modal = this.shadowRoot.querySelector(".modal");
     const modal = this.modal;
     const fadeOut = modal.animate([{ opacity: 1 }, { opacity: 0 }], {
       duration: 300,
       fill: "forwards",
     });
     fadeOut.onfinish = () => {
-    modal.classList.remove("show");
-    modal.style.display = "none";
+      modal.classList.remove("show");
+      modal.style.display = "none";
+    };
   };
-};
 
   IframePlugin.prototype.addNewTextAreaSection = function () {
     const container =
@@ -636,10 +631,10 @@ IframePlugin.prototype.closeModal = function() {
     this.shadowRoot = this.shadowHost.attachShadow({ mode: "open" });
   };
 
-/**
- * CSS Modal Style
- */
- 
+  /**
+   * CSS Modal Style
+  */
+
   IframePlugin.prototype.injectCss = function () {
     if (this.shadowRoot.querySelector("#iframe-plugin-styles")) return;
 
@@ -715,7 +710,7 @@ IframePlugin.prototype.closeModal = function() {
       .modal-body iframe { width: 100%; height: 100%; border: none; }
     `;
     this.shadowRoot.appendChild(style);
-  }; 
-  
+  };
+
   global.IframePlugin = IframePlugin;
 })(window);

@@ -272,8 +272,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         const req: GenerateRequestBody = {
           tag: this.currentTag,
           originalText: this.text,
-          title: title,
-          context: 'ETR'
+          title: title
         };
         if (this.context)
           req.context = this.context;
@@ -374,43 +373,42 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         body: {
           tag: tag,
         },
-        status: resp.textStatus == TextStatus.GENERATO_AI ? 'ai' : (resp.textStatus == TextStatus.REVISIONATO ? 'ok' : 'nok'),
+        status: resp?.textStatus == TextStatus.GENERATO_AI ? 'ai' : (resp?.textStatus == TextStatus.REVISIONATO ? 'ok' : 'nok'),
       }, '*');
     });
   }
 
   private buildTypes() {
-    if (true || this.context == 'INFO_MUSEO' || this.context == 'ETR') {
+    if (this.context == 'INFO_MUSEO' || this.context == 'ETR') {
       this.types = [
         {
           label: 'Testo facilitato (Easy to read)',
           key: 'EASY_TO_READ',
         }
       ];
+    } else {
+      this.types = [
+        {
+          label: 'Testo facilitato (Easy to read)',
+          key: 'EASY_TO_READ',
+        },
+        {
+          label: 'Testo semplificato (Dislessia)',
+          key: 'DISLESSIA',
+        },
+        {
+          label: 'Supporto numerico semplificato (Discalculia)',
+          key: 'DISCALCULIA',
+        },
+        {
+          label: 'Testo semplificato (ADHD)',
+          key: 'ADHD',
+        },
+        {
+          label: 'Testo semplificato (CAA)',
+          key: 'CAA',
+        },
+      ];
     }
-    // } else {
-    //   this.types = [
-    //     {
-    //       label: 'Testo facilitato (Easy to read)',
-    //       key: 'EASY_TO_READ',
-    //     },
-    //     {
-    //       label: 'Testo semplificato (Dislessia)',
-    //       key: 'DISLESSIA',
-    //     },
-    //     {
-    //       label: 'Supporto numerico semplificato (Discalculia)',
-    //       key: 'DISCALCULIA',
-    //     },
-    //     {
-    //       label: 'Testo semplificato (ADHD)',
-    //       key: 'ADHD',
-    //     },
-    //     {
-    //       label: 'Testo semplificato (CAA)',
-    //       key: 'CAA',
-    //     },
-    //   ];
-    // }
   }
 }
