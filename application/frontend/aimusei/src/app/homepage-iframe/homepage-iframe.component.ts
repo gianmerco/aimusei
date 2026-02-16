@@ -42,6 +42,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   validators: any = {};
   validateObj: any = {};
   edit: any = {};
+  pdfExist: boolean = false;
 
   text: string = '';
   funz: string = '';
@@ -51,6 +52,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   context: string = '';
   canGeneratePdf: boolean = false;
   token: string = '';
+  idMuseo: string = '';
 
   jsonText: any = undefined;
 
@@ -66,9 +68,10 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     window.addEventListener('message', (event) => {
-      const { payload } = event.data;
-      if (!payload) return;
       console.log('Message received: ', event);
+      const { payload } = event.data;
+      if (!payload)
+        return;
       if (event.data.type == 'status-button') {
         console.log('check-status-button');
         this.checkButtonStatus(payload.tag, payload.text);
@@ -79,13 +82,15 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         this.text = payload.text;
         this.funz = payload.funz;
         this.token = payload.token;
-        console.log('Token received: ', this.token);
+        this.idMuseo = payload.idMuseo;
         this.form.get('title')?.setValue(payload.title);
         this.currentTag = payload.tag;
         this.context = payload.context;
         this.canGeneratePdf = payload.canGeneratePdf;
         if (this.context == 'INFO_MUSEO')
           this.jsonText = JSON.parse(this.text);
+        if (this.idMuseo)
+          this.imageExist();
         this.buildTypes();
         for (let t of this.types) {
           this.form.addControl('checkbox_' + t.key, new FormControl(false, []));
@@ -114,9 +119,8 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   }
 
   checkValidate(key: string, check: boolean = false) {
-    if (check) {
+    if (check)
       return this.form.get(key)?.value?.length > 0;
-    }
     return this.validateObj[key];
   }
 
@@ -128,7 +132,6 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
       hash: this.hashCode,
       text: this.form.get(key)?.value,
     };
-    // this.apiService.cambiaValiditaSintesi(this.currentTag, this.validateObj[key], key).pipe(takeWhile(()=>this.alive)).subscribe();
     this.accessibilityService
       .reviseText(req)
       .pipe(takeWhile(() => this.alive))
@@ -142,7 +145,6 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
       tag: this.currentTag,
       hash: this.hashCode,
     };
-    // this.apiService.getSintesi(this.currentTag, key + '_NEW').pipe(takeWhile(() => this.alive)).subscribe((res: any) => {
     this.accessibilityService
       .validateText(req)
       .pipe(takeWhile(() => this.alive))
@@ -162,7 +164,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   }
 
   formatDate(d: Date) {
-    return d.toLocaleDateString(); //+' - '+d.toLocaleTimeString();
+    return d.toLocaleDateString();
   }
 
   salva() {
@@ -188,27 +190,23 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         elems2.item(i)?.classList.add('collapsed');
       }
     }
-    window.parent.postMessage({
-      type: 'saved',
-      id: 'xyz',
-      body: {
-        tag: this.currentTag,
-        hash: this.hashCode, // HASH
-        context: this.context
+    window.parent.postMessage(
+      {
+        type: 'saved',
+        id: 'xyz',
+        body: {
+          tag: this.currentTag,
+          hash: this.hashCode, // HASH
+          context: this.context
+        },
+        status: check ? (this.types.some((t) => !this.validateObj[t.key]) ? 'ai' : 'ok') : 'nok',
       },
-      status: check
-        ? this.types.some((t) => !this.validateObj[t.key])
-          ? 'ai'
-          : 'ok'
-        : 'nok',
-    }, '*');
+      '*'
+    );
   }
 
   checkDisabled() {
-    return this.types.some(
-      (t) =>
-        !this.form.get(t.key)?.value || this.form.get(t.key)?.value.length == 0
-    );
+    return this.types.some((t) => !this.form.get(t.key)?.value || this.form.get(t.key)?.value.length == 0);
   }
 
   getStatus(key: string) {
@@ -224,32 +222,42 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   }
 
   generaPdf() {
-    this.accessibilityService.generatePdf().subscribe((res) => {
-      const newBlob = new Blob([res], { type: 'application/pdf' });
-      //@ts-ignore
-      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+    this.accessibilityService
+      .generatePdf()
+      .pipe(takeWhile(() => this.alive))
+      .subscribe((res) => {
+        const newBlob = this.createBlob(res);
         //@ts-ignore
-        window.navigator.msSaveOrOpenBlob(newBlob);
-        return;
-      }
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(newBlob);
-      link.download = 'immagini.pdf';
-      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-    });
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+          //@ts-ignore
+          window.navigator.msSaveOrOpenBlob(newBlob);
+          return;
+        }
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(newBlob);
+        link.download = 'immagini.pdf';
+        link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      });
   }
 
   viewPdf() {
-    this.accessibilityService.generatePdf().subscribe((res) => {
-      const newBlob = new Blob([res], { type: 'application/pdf' });
-      //@ts-ignore
-      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-        //@ts-ignore
-        window.navigator.msSaveOrOpenBlob(newBlob);
-        return;
-      }
-      window.open(window.URL.createObjectURL(newBlob), '_blank');
-    });
+    this.accessibilityService
+      .getImage(this.idMuseo)
+      .pipe(takeWhile(() => this.alive))
+      .subscribe((res) => {
+        window.open(window.URL.createObjectURL(this.createBlob(res)), '_blank');
+      });
+  }
+
+  private createBlob(res: any) {
+    return new Blob([res], { type: 'application/pdf' });
+  }
+
+  private imageExist() {
+    this.accessibilityService
+      .imageExists(this.idMuseo)
+      .pipe(takeWhile(() => this.alive))
+      .subscribe((res) => this.pdfExist = res);
   }
 
   private search() {
@@ -261,12 +269,8 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     this.form.reset();
     this.form.get('title')?.patchValue(title);
     this.form.get('version')?.patchValue(version);
-    // this.apiService.getOpera(this.currentTag).pipe(takeWhile(()=>this.alive)).subscribe(res=>{
     this.accessibilityService
-      .getOriginalText(
-        this.currentTag,
-        this.text
-      )
+      .getOriginalText(this.currentTag, this.text)
       .pipe(takeWhile(() => this.alive))
       .subscribe((res) => {
         const req: GenerateRequestBody = {
@@ -366,16 +370,22 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   }
 
   private checkButtonStatus(tag: string, description: string) {
-    this.accessibilityService.getStatus(tag, description).subscribe((resp) => {
-      window.parent.postMessage({
-        type: 'saved',
-        id: 'xyz',
-        body: {
-          tag: tag,
-        },
-        status: resp?.textStatus == TextStatus.GENERATO_AI ? 'ai' : (resp?.textStatus == TextStatus.REVISIONATO ? 'ok' : 'nok'),
-      }, '*');
-    });
+    this.accessibilityService
+      .getStatus(tag, description)
+      .pipe(takeWhile(() => this.alive))
+      .subscribe((resp) => {
+        window.parent.postMessage(
+          {
+            type: 'saved',
+            id: 'xyz',
+            body: {
+              tag: tag,
+            },
+            status: resp?.textStatus == TextStatus.GENERATO_AI ? 'ai' : (resp?.textStatus == TextStatus.REVISIONATO ? 'ok' : 'nok'),
+          },
+          '*'
+        );
+      });
   }
 
   private buildTypes() {

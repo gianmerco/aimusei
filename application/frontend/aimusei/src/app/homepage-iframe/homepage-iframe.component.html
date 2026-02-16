@@ -221,7 +221,7 @@
       VISUALIZZA PDF
     </button> -->
     <button
-      *ngIf="canGeneratePdf"
+      *ngIf="canGeneratePdf && pdfExist"
       class="btn btn-outline-primary custom-color-hover"
       (click)="generaPdf()"
     >
