@@ -11,7 +11,8 @@
 
     this.iconBtnMap = new Map();
     this._ICONBTN_ = "iconBtn_";
-    // this.token = options.token;
+    this.token = options.token;
+    this.idMuseo = options.idMuseo;
 
     this.createShadowHost();
     this.injectCss();
@@ -99,6 +100,7 @@
             context: context ? context : 'ETR', // verifica se deve impacchettare in json piu campi presi da tag child (indirizzo, categoria, textContent, etc)
             canGeneratePdf: context === "INFO_MUSEO",
             // token: this.token,
+            // idMuseo: this.idMuseo,
             title: title ? title : ("Title " + tag),
             status: iconBtn.src.includes("rossa.png")
               ? "new"
@@ -226,7 +228,8 @@
     if (editor.tagName.toLowerCase() === "input") {
       extractedText = editor.value;
     } else {
-      paragraphs = editor.querySelectorAll("p");
+      // paragraphs = editor.querySelectorAll("p");
+      paragraphs = editor.querySelectorAll(".ql-container.ql-snow");
       extractedText = Array.from(paragraphs)
         .map((p) => p.innerText.trim())
         .filter((t) => t.length > 0)
@@ -354,6 +357,7 @@
 
       button.onclick = () => {
         window.currentEditor = editor;
+        extractedText = this.extractTextDiv(editor);
         console.log("Extracted text for iframe:", extractedText);
         this.openModal();
         this.messageToIframe(tag, extractedText, context, title);
@@ -445,6 +449,8 @@
 
       button.onclick = () => {
         window.currentEditor = form;
+        payload = this.extractTextForm(form, {}, index);
+        extractedText = JSON.stringify(payload);
         console.log("Extracted text for iframe:", extractedText);
         this.openModal();
         this.messageToIframe(tag, extractedText, "INFO_MUSEO", title);
@@ -595,9 +601,7 @@
   };
 
   IframePlugin.prototype.addNewTextAreaSection = function () {
-    const container =
-      document.querySelector("#dynamic-sections") || document.body;
-
+    const container = document.querySelector("#dynamic-sections") || document.body;
     const section = document.createElement("div");
     section.className = "col-6 mt-4";
 
@@ -614,11 +618,10 @@
         Questa è una nuova sezione aggiunta dinamicamente per testare il plugin IFrame.
       </textarea>
     `;
-
     container.appendChild(section);
   };
 
-  //create host in body for use Shadow DOM
+  // Creazione host nel body per uso Shadow DOM
   IframePlugin.prototype.createShadowHost = function () {
     if (document.getElementById("iframe-plugin-host")) {
       this.shadowHost = document.getElementById("iframe-plugin-host");
@@ -631,10 +634,7 @@
     this.shadowRoot = this.shadowHost.attachShadow({ mode: "open" });
   };
 
-  /**
-   * CSS Modal Style
-  */
-
+  // CSS Modal Style
   IframePlugin.prototype.injectCss = function () {
     if (this.shadowRoot.querySelector("#iframe-plugin-styles")) return;
 

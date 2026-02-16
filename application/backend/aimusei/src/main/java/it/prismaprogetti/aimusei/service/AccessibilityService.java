@@ -1,6 +1,7 @@
 package it.prismaprogetti.aimusei.service;
 
 
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -186,7 +187,7 @@ public class AccessibilityService {
 	public String regenerateSintesi(RegenerateSintesiRequest request) {
 
 		Opera opera = operaRepository.findByHash(request.getHash())
-				.orElseThrow(() -> new RuntimeException("Opera non trovata"));
+				.orElseThrow(() -> new Exception("Opera non trovata"));
 
 		Sintesi sintesiToUpdate = opera.getSintesi();
 
@@ -202,8 +203,12 @@ public class AccessibilityService {
 		return descrizioneAi;
 	}
 
+	@SneakyThrows
 	public byte[] generateImage(GenerateImageRequest request) {
 		Opera opera = operaRepository.findByTag(request.getTag()).orElseThrow();
+		if(opera.getSintesi()==null) {
+			throw new Exception("Sintesi non trovata per l'opera con tag: " + request.getTag());
+		}
 		String etr=opera.getSintesi().getLatestDescrizione();
 		
 		PictogramsRequest pictogramsRequest = PictogramsRequest.builder()
@@ -212,6 +217,7 @@ public class AccessibilityService {
 				.build()
 				)
 		.build();
+		
 		ImageResponse imageResponse=	((ImageResponse)aiService.sendRequest(pictogramsRequest));
 		
 		byte[] document = pdfService.generateDocument(imageResponse.getContent());
@@ -219,6 +225,19 @@ public class AccessibilityService {
 		s3Service.saveInBucket(document,request.getIdMuseo());
 		
 		return document;
+	}
+
+	public URL getImageUrl(String idMuseo) {
+		return s3Service.getSignedGetUrl(idMuseo);
+	}
+
+	public Boolean imageExists(String idMuseo) {
+		
+        return s3Service.objectExists(idMuseo);
+	}
+
+	public byte[] getImage(String idMuseo) {
+		return s3Service.getImage(idMuseo);
 	}
 
 }

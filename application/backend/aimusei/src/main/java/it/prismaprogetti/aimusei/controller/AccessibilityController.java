@@ -1,5 +1,7 @@
 package it.prismaprogetti.aimusei.controller;
 
+import java.net.URL;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -61,6 +63,21 @@ public class AccessibilityController {
 	@PostMapping("/texts/generateImage")
 	public ResponseEntity<byte[]> generateImage(@RequestBody GenerateImageRequest request) {
 		return ResponseEntity.ok(accessibilityService.generateImage(request));
+	}
+	
+	@GetMapping("/texts/getImageUrl")
+	public ResponseEntity<URL> getImageUrl( @RequestParam String idMuseo) {
+		return ResponseEntity.ok(accessibilityService.getImageUrl(idMuseo));
+	}
+	
+	@GetMapping("/texts/getImage")
+	public ResponseEntity<byte[]> getImage( @RequestParam String idMuseo) {
+		return ResponseEntity.ok(accessibilityService.getImage(idMuseo));
+	}
+	
+	@GetMapping("/texts/imageExists")
+	public ResponseEntity<Boolean> imageExists( @RequestParam String idMuseo) {
+		return ResponseEntity.ok(accessibilityService.imageExists(idMuseo));
 	}
 	
 	
