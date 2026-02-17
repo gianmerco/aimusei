@@ -12,6 +12,10 @@ data:
     aimusei.key={{ .Values.config.appKey }}
     logging.level.org.springframework.data.mongodb=DEBUG
     images={{ .Values.config.images }}
+    spring.cloud.aws.s3.endpoint={{ .Values.config.s3.endpoint }}
+    spring.cloud.aws.s3.region={{ .Values.config.s3.region }}
+    spring.cloud.aws.credentials.access-key={{ .Values.config.s3.accessKey }}
+    spring.cloud.aws.credentials.secret-key={{ .Values.config.s3.secretKey }}
 ---
 apiVersion: v1
 kind: ConfigMap
