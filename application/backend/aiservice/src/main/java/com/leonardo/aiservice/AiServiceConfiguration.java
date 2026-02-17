@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -32,21 +31,15 @@ public class AiServiceConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(AiServiceConfiguration.class);
 
-    @Bean
-    @Profile("!mock")
-    @ConditionalOnMissingBean(AiService.class)
-    AiService aiService(AiGatewayClient aiWebClient) {
-        log.debug("Bean AiService (DefaultAiService) inizializzato – profilo != mock");
-        return new DefaultAiService(aiWebClient);
-    }
 
     @Bean
-    @Profile("mock")
     @ConditionalOnMissingBean(AiService.class)
-    AiService mockAiService() {
-        log.warn("Bean AiService (MockAiService) inizializzato – profilo mock ATTIVO");
-        return new MockAiService();
+    AiService aiService(AiGatewayClient aiWebClient) {
+        DefaultAiService defaultAiService = new DefaultAiService(aiWebClient);
+        log.debug("Bean AiService inizializzato");
+        return defaultAiService;
     }
+
     @Bean
     @ConditionalOnMissingBean(AiGatewayClient.class)
     AiGatewayClient aiGatewayClient(TokenProvider tokenProvider, WebClient webClient, AiServiceProperties props) {

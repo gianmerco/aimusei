@@ -2,9 +2,10 @@ package it.prismaprogetti.aimusei.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.itextpdf.io.image.ImageData;
@@ -15,120 +16,145 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.leonardo.aiservice.content.ByteArrayImage;
 import com.leonardo.aiservice.content.ImageContent;
-import com.leonardo.aiservice.content.ImageListContent;
+import com.leonardo.aiservice.content.ImageMapContent;
 
 @Service
 public class PDFService {
 	
-	@Value("${images}")
-	private String[] imagesArray;
 	
-	public byte[] generateDocument(ImageListContent content) {
+	public byte[] generateDocument(ImageMapContent content) {
 		
-		   try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-	        	
-
-			   List<ImageContent> images = content.getValue();
-			   
-	            PdfWriter writer = new PdfWriter(baos);
-	            PdfDocument pdfDoc = new PdfDocument(writer);
-	            Document document = new Document(pdfDoc);
-	            
-	            // Imposta il formato A4
-	            pdfDoc.setDefaultPageSize(PageSize.A4);
-	            
-	            // Dimensioni delle celle (A4 con margini)
-	            float pageWidth = PageSize.A4.getWidth() - 72;
-	            float pageHeight = PageSize.A4.getHeight() - 72;
-	            
-	            float cellWidth = pageWidth / 4;
-	            float cellHeight = pageHeight / 8;
-	            
-	            int imagesPerPage = 32; // 8 row × 4 column
-	            int totalImages = images.size();
-	            int totalPages = (int) Math.ceil((double) totalImages / imagesPerPage);
-	            
-	            for (int page = 0; page < totalPages; page++) {
-	                if (page > 0) {
-	                    document.add(new com.itextpdf.layout.element.AreaBreak());
-	                }
-	                
-	                // Crea una nuova tabella per questa pagina
-	                float[] columnWidths = {1f, 1f, 1f, 1f};
-	                Table table = new Table(UnitValue.createPercentArray(columnWidths));
-	                table.setWidth(UnitValue.createPercentValue(100));
-	                
-	                int startIndex = page * imagesPerPage;
-	                int endIndex = Math.min(startIndex + imagesPerPage, totalImages);
-	                
-	                // Aggiungi esattamente 32 celle per pagina
-	                for (int i = startIndex; i < startIndex + imagesPerPage; i++) {
-	                    if (i < endIndex) {
-	                        // Cella con immagine
-	                        addImageToTable(table, images.get(i), cellWidth, cellHeight);
-	                    } else {
-	                        // Cella vuota per completare la pagina
-	                        Cell emptyCell = createEmptyCell(cellWidth, cellHeight);
-	                        table.addCell(emptyCell);
-	                    }
-	                }
-	                
-	                document.add(table);
-	            }
-	            
-	            document.close();
-	            return baos.toByteArray();
-	            
-	        } catch (IOException e) {
-	            throw new RuntimeException("Errore nella generazione del PDF", e);
-	        }
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+			
+			// Ottieni le entry (chiave-valore) dalla mappa
+			List<Map.Entry<String, ImageContent>> entries = new ArrayList<>(content.getValue().entrySet());
+			
+			PdfWriter writer = new PdfWriter(baos);
+			PdfDocument pdfDoc = new PdfDocument(writer);
+			Document document = new Document(pdfDoc);
+			
+			// Imposta il formato A4
+			pdfDoc.setDefaultPageSize(PageSize.A4);
+			
+			// Dimensioni delle celle (A4 con margini)
+			float pageWidth = PageSize.A4.getWidth() - 72;
+			float pageHeight = PageSize.A4.getHeight() - 72;
+			
+			float cellWidth = pageWidth / 4;
+			float cellHeight = pageHeight / 8;
+			
+			int imagesPerPage = 32; // 8 righe × 4 colonne
+			int totalImages = entries.size();
+			int totalPages = (int) Math.ceil((double) totalImages / imagesPerPage);
+			
+			for (int page = 0; page < totalPages; page++) {
+				if (page > 0) {
+					document.add(new com.itextpdf.layout.element.AreaBreak());
+				}
+				
+				// Crea una nuova tabella per questa pagina
+				float[] columnWidths = {1f, 1f, 1f, 1f};
+				Table table = new Table(UnitValue.createPercentArray(columnWidths));
+				table.setWidth(UnitValue.createPercentValue(100));
+				
+				int startIndex = page * imagesPerPage;
+				int endIndex = Math.min(startIndex + imagesPerPage, totalImages);
+				
+				// Aggiungi esattamente 32 celle per pagina
+				for (int i = startIndex; i < startIndex + imagesPerPage; i++) {
+					if (i < endIndex) {
+						Map.Entry<String, ImageContent> entry = entries.get(i);
+						addImageToTable(table, entry.getKey(), entry.getValue(), cellWidth, cellHeight);
+					} else {
+						// Cella vuota per completare la pagina
+						Cell emptyCell = createEmptyCell(cellWidth, cellHeight);
+						table.addCell(emptyCell);
+					}
+				}
+				
+				document.add(table);
+			}
+			
+			document.close();
+			return baos.toByteArray();
+			
+		} catch (IOException e) {
+			throw new RuntimeException("Errore nella generazione del PDF", e);
+		}
 	}
-    
-    private void addImageToTable(Table table, ImageContent imageContent, float cellWidth, float cellHeight) {
-        try {
-            // Crea l'immagine da ImageContent
+	
+	private void addImageToTable(Table table, String key, ImageContent imageContent, float cellWidth, float cellHeight) {
+		try {
+			// Crea l'immagine a partire dal byte array
 			ImageData imageData = ImageDataFactory.create(((ByteArrayImage) imageContent).getValue());
-            Image image = new Image(imageData);
-            
-            // Ridimensiona l'immagine per riempire completamente la cella
-            image.setAutoScale(true);
-            image.setWidth(cellWidth);
-            image.setHeight(cellHeight);
-            
-            // Crea la cella e aggiungi l'immagine
-            Cell cell = createCellWithContent(image, cellWidth, cellHeight);
-            table.addCell(cell);
-            
-        } catch (Exception e) {
-            // Se c'è un errore con l'immagine, aggiungi una cella vuota
-            Cell emptyCell = createEmptyCell(cellWidth, cellHeight);
-            table.addCell(emptyCell);
-        }
-    }
-    
-    private Cell createCellWithContent(Image image, float width, float height) {
-        Cell cell = new Cell();
-        cell.setWidth(width);
-        cell.setHeight(height);
-        cell.setPadding(0);
-        cell.setMargin(0);
-        cell.setBorder(null); // Rimuove i bordi per un look più pulito
-        cell.add(image);
-        return cell;
-    }
-    
-    private Cell createEmptyCell(float width, float height) {
-        Cell cell = new Cell();
-        cell.setWidth(width);
-        cell.setHeight(height);
-        cell.setPadding(0);
-        cell.setMargin(0);
-        cell.setBorder(null); // Rimuove i bordi
-        return cell;
-    }
-
+			Image image = new Image(imageData);
+			
+			// Dimensioni originali dell'immagine (in punti, assumendo 1 pixel = 1 punto)
+			float originalWidth = image.getImageWidth();
+			float originalHeight = image.getImageHeight();
+			
+			// Altezza riservata per la didascalia (testo)
+			float textHeight = 15f; // sufficiente per una riga con font 10
+			float availableImageHeight = cellHeight - textHeight;
+			
+			// Calcola il fattore di scala per adattare l'immagine allo spazio disponibile
+			float scale = Math.min(cellWidth / originalWidth, availableImageHeight / originalHeight);
+			float newWidth = originalWidth * scale;
+			float newHeight = originalHeight * scale;
+			
+			// Applica le nuove dimensioni
+			image.setWidth(newWidth);
+			image.setHeight(newHeight);
+			
+			// Crea un paragrafo per centrare l'immagine orizzontalmente
+			Paragraph imageParagraph = new Paragraph();
+			imageParagraph.add(image);
+			imageParagraph.setTextAlignment(TextAlignment.CENTER);
+			imageParagraph.setMargin(0);
+			imageParagraph.setPadding(0);
+			
+			// Crea la didascalia con la chiave
+			Paragraph caption = new Paragraph(key)
+					.setFontSize(10)
+					.setTextAlignment(TextAlignment.CENTER)
+					.setMargin(0)
+					.setPadding(0);
+			
+			// Crea la cella con le dimensioni fisse
+			Cell cell = new Cell();
+			cell.setWidth(cellWidth);
+			cell.setHeight(cellHeight);
+			cell.setPadding(0);
+			cell.setMargin(0);
+			cell.setBorder(null);
+			
+			// Aggiunge prima l'immagine centrata, poi la didascalia
+			cell.add(imageParagraph);
+			cell.add(caption);
+			
+			table.addCell(cell);
+			
+		} catch (Exception e) {
+			// In caso di errore, cella vuota
+			Cell emptyCell = createEmptyCell(cellWidth, cellHeight);
+			table.addCell(emptyCell);
+		}
+	}
+	
+	private Cell createEmptyCell(float width, float height) {
+		Cell cell = new Cell();
+		cell.setWidth(width);
+		cell.setHeight(height);
+		cell.setPadding(0);
+		cell.setMargin(0);
+		cell.setBorder(null);
+		return cell;
+	}
+	
 }

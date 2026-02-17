@@ -1,4 +1,7 @@
 package com.leonardo.aiservice.request;
+import java.util.Map;
+
+import com.leonardo.aiservice.content.ImageContent;
 import com.leonardo.aiservice.content.TextContent;
 
 import lombok.AccessLevel;
@@ -6,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 import lombok.ToString;
 
 /**
@@ -21,6 +25,8 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class PictogramsRequest implements AiRequest {
     private final TextContent content;
+    @Singular("wordToPictogram")
+    private final Map<String, ImageContent> wordsToPictograms;
 
     @Override
     public TextContent getContent() {

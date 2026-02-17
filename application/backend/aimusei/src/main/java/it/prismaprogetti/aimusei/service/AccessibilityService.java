@@ -31,8 +31,10 @@ import it.prismaprogetti.aimusei.model.TextHashValidateRequest;
 import it.prismaprogetti.aimusei.model.TextOriginalResponse;
 import it.prismaprogetti.aimusei.repository.OperaRepository;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class AccessibilityService {
 
 	@Autowired
@@ -218,11 +220,11 @@ public class AccessibilityService {
 				)
 		.build();
 		
-		ImageResponse imageResponse=	((ImageResponse)aiService.sendRequest(pictogramsRequest));
+		ImageResponse imageResponse=((ImageResponse)aiService.sendRequest(pictogramsRequest));
 		
 		byte[] document = pdfService.generateDocument(imageResponse.getContent());
-		
-		s3Service.saveInBucket(document,request.getIdMuseo());
+
+		s3Service.saveInBucket(document,request.getIdMuseo());	
 		
 		return document;
 	}

@@ -10,11 +10,13 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 import lombok.ToString;
 
 /**
  * un tipo di contenuto che aggrega TextContent, ma su più lingue. Il contenuto è una mappa che associa ad una lingua (rappresentata dal suo codice 
  * ISO 639-1) alla risposta in quella lingua
+ * TODO: aggiungi un enum per le lingue
 */
 
 @Getter
@@ -25,6 +27,7 @@ import lombok.ToString;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MultilingualTextContent implements Content {
+    @Singular("singleLanguageString")
     private final Map<String, TextContent> value;
 
     public TextContent ofLanguage(String lang) {

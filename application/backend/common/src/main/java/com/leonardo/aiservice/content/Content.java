@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value = TextContent.class, name = "text"),
     @JsonSubTypes.Type(value = ImageContent.class, name = "image"),
     @JsonSubTypes.Type(value = MultilingualTextContent.class, name = "multilingualText"),
-    @JsonSubTypes.Type(value = ImageListContent.class, name = "imageList")
+    @JsonSubTypes.Type(value = ImageMapContent.class, name = "imageList")
 })
 public interface Content {
     // ...

@@ -1,6 +1,6 @@
 package com.leonardo.aiservice.response;
 
-import com.leonardo.aiservice.content.ImageListContent;
+import com.leonardo.aiservice.content.ImageMapContent;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,10 +20,10 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class ImageResponse implements AiResponse {
     // ...
-    private final ImageListContent content;
+    private final ImageMapContent content;
 
     @Override
-    public ImageListContent getContent() {
+    public ImageMapContent getContent() {
         return content;
     }
 
