@@ -208,8 +208,12 @@ public class AccessibilityService {
 	@SneakyThrows
 	public byte[] generateImage(GenerateImageRequest request) {
 		Opera opera = operaRepository.findByTag(request.getTag()).orElseThrow();
+		
 		if(opera.getSintesi()==null) {
 			throw new Exception("Sintesi non trovata per l'opera con tag: " + request.getTag());
+		}
+		if(opera.getStatoOpera()!=StatoOpera.REVISIONATO) {
+			throw new Exception("Opera con tag: " + request.getTag() + " non revisionata, impossibile generare immagine");
 		}
 		String etr=opera.getSintesi().getLatestDescrizione();
 		

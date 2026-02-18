@@ -46,7 +46,6 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
 
   text: string = '';
   funz: string = '';
-  tag: string = '';
   status: string = '';
   hashCode: string = '';
   context: string = '';
@@ -54,7 +53,11 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   token: string = '';
   idMuseo: string = '';
 
+  disabled: boolean = false;
   jsonText: any = undefined;
+  oldText: string = '';
+
+  MOCKED_TYPE = 'EASY_TO_READ';
 
   constructor(
     @Inject(APP_ENVIRONMENT) public env: AppEnvironment,
@@ -68,12 +71,11 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     window.addEventListener('message', (event) => {
-      console.log('Message received: ', event);
       const { payload } = event.data;
       if (!payload)
         return;
+      console.log('Message received: ', event);
       if (event.data.type == 'status-button') {
-        console.log('check-status-button');
         this.checkButtonStatus(payload.tag, payload.text);
         return ;
       }
@@ -223,7 +225,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
 
   generaPdf() {
     this.accessibilityService
-      .generatePdf()
+      .generatePdf(this.currentTag, this.idMuseo)
       .pipe(takeWhile(() => this.alive))
       .subscribe((res) => {
         const newBlob = this.createBlob(res);
@@ -237,6 +239,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         link.href = window.URL.createObjectURL(newBlob);
         link.download = 'immagini.pdf';
         link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        this.pdfExist = true;
       });
   }
 
@@ -264,7 +267,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     // mantiene il valore del tag attivo
     let tag = this.form.get('tag')?.value;
     let title = this.form.get('title')?.value + '';
-    let version = this.form.get('version')?.value + '';
+    let version = (this.form.get('version')?.value ?? '') + '';
     this.selectedTypes = ([] as any[]).concat(this.types);
     this.form.reset();
     this.form.get('title')?.patchValue(title);
@@ -288,6 +291,12 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
               .pipe(takeWhile(() => this.alive))
               .subscribe((resp) => {
                 this.updateView(resp);
+                this.disabled = false;
+              }, (error) => {
+                console.error('Error generating simplified texts: ', error);
+                this.form.get('input')?.setValue(this.text);
+                this.form.get('version')?.setValue('');
+                this.disabled = true;
               });
           } else {
             // CASISITICA 3
@@ -298,9 +307,16 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
                 .pipe(takeWhile(() => this.alive))
                 .subscribe((resp) => {
                   this.updateView(resp);
+                  this.disabled = false;
+                }, (error) => {
+                  console.error('Error generating simplified texts: ', error);
+                  this.form.get('input')?.setValue(this.text);
+                  this.form.get('version')?.setValue('');
+                  this.disabled = true;
                 });
             } else {
               this.updateView(res);
+              this.disabled = false;
             }
           }
         } else {
@@ -310,8 +326,19 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
             .pipe(takeWhile(() => this.alive))
             .subscribe((resp) => {
               this.updateView(resp);
+              this.disabled = false;
+            }, (error) => {
+              console.error('Error generating simplified texts: ', error);
+              this.form.get('input')?.setValue(this.text);
+              this.form.get('version')?.setValue('');
+              this.disabled = true;
             });
         }
+      }, (error) => {
+        console.error('Error get simplified texts: ', error);
+        this.form.get('input')?.setValue(this.text);
+        this.form.get('version')?.setValue('');
+        this.disabled = true;
       });
   }
 
@@ -325,7 +352,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         this.sessionService.showSpinner = false;
         this.hashCode = res.hashCode;
         if (res.textSimplified) {
-          res.textSimplified.tipo = "EASY_TO_READ";
+          res.textSimplified.tipo = this.MOCKED_TYPE;
           this.results = {};
           this.lastUpdates = {};
           // for (let sint of res.textSimplified) {
@@ -364,7 +391,6 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     this.edit = {};
     this.text = '';
     this.funz = '';
-    this.tag = '';
     this.status = '';
     this.hashCode = '';
   }

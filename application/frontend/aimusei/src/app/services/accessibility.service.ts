@@ -80,8 +80,8 @@ export class AccessibilityService {
    * generate aarasac pdf
    * @returns byte[]
    */
-  generatePdf() {
-    return this.http.post(this.env.apiUrl + this.basePath + '/generateImage', {}, { responseType: 'blob' });
+  generatePdf(tag: string, idMuseo: string) {
+    return this.http.post(this.env.apiUrl + this.basePath + '/generateImage', { tag, idMuseo }, { responseType: 'blob' });
   }
 
   /**

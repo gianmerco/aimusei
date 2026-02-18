@@ -4,15 +4,17 @@
       {
         pathIcon: "https://api-coll.museiitaliani.it/aimusei/api",
         urlIframe: "https://api-coll.museiitaliani.it/aimusei/",
-        observerDom: false
+        observerDom: false,
+        token: '',
+        idMuseo: ''
       },
       options || {}
     );
 
     this.iconBtnMap = new Map();
     this._ICONBTN_ = "iconBtn_";
-    this.token = options.token;
-    this.idMuseo = options.idMuseo;
+    this.token = this.options.token;
+    this.idMuseo = this.options.idMuseo;
 
     this.createShadowHost();
     this.injectCss();
@@ -99,8 +101,8 @@
             tag: tag,
             context: context ? context : 'ETR', // verifica se deve impacchettare in json piu campi presi da tag child (indirizzo, categoria, textContent, etc)
             canGeneratePdf: context === "INFO_MUSEO",
-            // token: this.token,
-            // idMuseo: this.idMuseo,
+            token: this.token,
+            idMuseo: this.idMuseo,
             title: title ? title : ("Title " + tag),
             status: iconBtn.src.includes("rossa.png")
               ? "new"
@@ -160,22 +162,25 @@
       this.executeIframePluginTextArea();
       this.executeIframePluginDivInput();
       this.executeIframePluginForm();
-    }, 800);
+    }, 500);
   };
 
   IframePlugin.prototype.checkStatus = function (tag, description) {
     const iframe = this.iframe;
-    iframe.contentWindow.postMessage(
-      {
-        type: "status-button",
-        payload: {
-          text: description,
-          tag: tag,
-          // token: this.token,
-        }
-      },
-      this.options.urlIframe
-    );
+    if (tag && description) {
+      console.log("checkStatus called with tag:", tag, "description:", description);
+      iframe.contentWindow.postMessage(
+        {
+          type: "status-button",
+          payload: {
+            text: description,
+            tag: tag,
+            token: this.token,
+          }
+        },
+        this.options.urlIframe
+      );
+    }
   }
 
   IframePlugin.prototype.extractTextForm = function(form, payload, index) {
@@ -493,7 +498,7 @@
     });
 
     //option default
-    if (this.observerDom) this.startObserver();
+    if (this.options.observerDom) this.startObserver();
   };
 
   IframePlugin.prototype.stopObserver = function () {

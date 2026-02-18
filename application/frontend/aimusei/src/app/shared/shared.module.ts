@@ -6,6 +6,8 @@ import { BrowserModule } from "@angular/platform-browser";
 import { ErrorDialogComponent } from "./components/error-dialog/error-dialog.component";
 import { HeaderComponent } from "./components/header/header.component";
 import { HeaderMenuComponent } from "./components/header-menu/header-menu.component";
+import { FormatValuePipe } from "./pipe/format-value.pipe";
+import { HumanizePipe } from "./pipe/humanize.pipe";
 import { PrettyPipe } from "./pipe/pretty.pipe";
 
 @NgModule({
@@ -13,6 +15,8 @@ import { PrettyPipe } from "./pipe/pretty.pipe";
     ErrorDialogComponent,
     HeaderComponent,
     HeaderMenuComponent,
+    FormatValuePipe,
+    HumanizePipe,
     PrettyPipe
   ],
   imports: [
@@ -31,6 +35,8 @@ import { PrettyPipe } from "./pipe/pretty.pipe";
     ErrorDialogComponent,
     HeaderComponent,
     HeaderMenuComponent,
+    FormatValuePipe,
+    HumanizePipe,
     PrettyPipe
   ],
   providers: [],

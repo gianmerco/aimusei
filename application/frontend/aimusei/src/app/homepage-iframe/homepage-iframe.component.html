@@ -22,36 +22,16 @@
           <table class="table table-striped">
             <thead>
               <tr>
-                <th scope="col">Denominazione</th>
-                <th scope="col">Regione</th>
-                <th scope="col">Comune</th>
-                <th scope="col">Categoria</th>
-                <th scope="col">Ambito interesse</th>
-                <th scope="col">Consigli visita</th>
-                <th scope="col">Info 1</th>
-                <th scope="col">Info 2</th>
-                <th scope="col">Info 3</th>
-                <th scope="col">Museo parte itinerario</th>
-                <th scope="col">Museo parte tour</th>
-                <th scope="col">Note visitatore</th>
-                <th scope="col">Url sito</th>
+                <td *ngFor="let f of jsonText | keyvalue">
+                  <strong>{{ f.key | humanize }}</strong>
+                </td>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>{{ jsonText.denominazione }}</td>
-                <td>{{ jsonText.regione }}</td>
-                <td>{{ jsonText.comune }}</td>
-                <td>{{ jsonText.categoria }}</td>
-                <td>{{ jsonText.ambitoInteresse }}</td>
-                <td>{{ jsonText.consigliVisita }}</td>
-                <td>{{ jsonText.info1 ? 'SI' : 'NO' }}</td>
-                <td>{{ jsonText.info2 ? 'SI' : 'NO' }}</td>
-                <td>{{ jsonText.info3 ? 'SI' : 'NO' }}</td>
-                <td>{{ jsonText.museoParteItinerario ? 'SI' : 'NO' }}</td>
-                <td>{{ jsonText.museoParteTour ? 'SI' : 'NO' }}</td>
-                <td>{{ jsonText.noteVisitatore }}</td>
-                <td>{{ jsonText.urlSito }}</td>
+                <td *ngFor="let f of jsonText | keyvalue">
+                  {{ f.value | formatValue }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -157,13 +137,21 @@
               <!-- PULSANTI -->
               <div class="d-flex justify-content-end mt-3 px-3">
                 <mat-icon
+                  *ngIf="checkEdit(t.key)"
+                  (click)="edit[t.key] = false; form.get(t.key)?.setValue(oldText); oldText = '';"
+                  role="button"
+                  title="Annulla modifiche"
+                  style="color: red"
+                  >close_small</mat-icon
+                >
+                <mat-icon
                   *ngIf="!checkEdit(t.key)"
-                  (click)="edit[t.key] = true"
+                  (click)="edit[t.key] = true; oldText = form.get(t.key)?.value"
                   role="button"
                   title="Modifica"
                   class="primary-color"
                   [ngClass]="
-                    !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0
+                    !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0 || disabled
                       ? 'disabled'
                       : ''
                   "
@@ -176,7 +164,7 @@
                   title="Salva e valida"
                   style="color: green"
                   [ngClass]="
-                    !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0
+                    !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0 || disabled
                       ? 'disabled'
                       : ''
                   "
@@ -187,7 +175,7 @@
                   (click)="regenerate(t.key)"
                   role="button"
                   title="Rigenera"
-                  [ngClass]="{ disabled: checkValidate(t.key) }"
+                  [ngClass]="{ 'disabled': checkValidate(t.key) || disabled }"
                   >refresh</mat-icon
                 >
                 <!-- <mat-icon
@@ -213,16 +201,18 @@
   </div>
 
   <div class="d-flex justify-content-end align-items-center mt-3 gap-2">
-    <!-- <button
-      *ngIf="canGeneratePdf"
+    <button
+      *ngIf="canGeneratePdf && pdfExist && form.get(MOCKED_TYPE)?.value?.length > 0 && checkValidate(MOCKED_TYPE)"
       class="btn btn-outline-primary custom-color-hover"
+      [disabled]="disabled"
       (click)="viewPdf()"
     >
       VISUALIZZA PDF
-    </button> -->
+    </button>
     <button
-      *ngIf="canGeneratePdf && pdfExist"
+      *ngIf="canGeneratePdf && form.get(MOCKED_TYPE)?.value?.length > 0 && checkValidate(MOCKED_TYPE)"
       class="btn btn-outline-primary custom-color-hover"
+      [disabled]="disabled"
       (click)="generaPdf()"
     >
       GENERA PDF
@@ -230,7 +220,7 @@
     <button
       class="btn btn-primary"
       (click)="salva()"
-      [disabled]="checkDisabled()"
+      [disabled]="checkDisabled() || disabled"
     >
       SALVA
     </button>
