@@ -12,10 +12,18 @@ data:
     aimusei.key={{ .Values.config.appKey }}
     logging.level.org.springframework.data.mongodb=DEBUG
     images={{ .Values.config.images }}
+    aiservice.uri={{ .Values.config.aiservice.uri }}
+    aiservice.endpoint={{ .Values.config.aiservice.endpoint }}
+    aiservice.k8s.namespace={{ .Values.config.aiservice.namespace }}
+    aiservice.k8s.service-account={{ .Values.config.aiservice.serviceAccount }}
+    aiservice.k8s.enabled={{ .Values.config.aiservice.enabled }}
     spring.cloud.aws.s3.endpoint={{ .Values.config.s3.endpoint }}
     spring.cloud.aws.s3.region={{ .Values.config.s3.region }}
     spring.cloud.aws.credentials.access-key={{ .Values.config.s3.accessKey }}
     spring.cloud.aws.credentials.secret-key={{ .Values.config.s3.secretKey }}
+    spring.cloud.aws.s3.path-style-access-enabled={{ .Values.config.s3.pathStyleAccessEnabled }}
+    spring.cloud.aws.s3.chunked-encoding-enabled={{ .Values.config.s3.chunkedEncodingEnabled }}
+    spring.cloud.aws.s3.checksum-validation-enabled={{ .Values.config.s3.checksumValidationEnabled }}
 ---
 apiVersion: v1
 kind: ConfigMap

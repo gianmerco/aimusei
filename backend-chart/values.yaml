@@ -27,6 +27,16 @@ config:
     region: "us-east-1"
     accessKey: "admin-psn10012201973"
     secretKey: "v+F9JBy2lx6jvzTaUcADyBoR/lfyQfaxIpnisss5"
+    pathStyleAccessEnabled: true
+    chunkedEncodingEnabled: true
+    checksumValidationEnabled: false
+  
+  aiservice:
+    uri: "http://aigateway-middleware.accessibilita.svc.cluster.local:80"
+    endpoint: "/aiservice/airequest"
+    namespace: "aimusei"
+    serviceAccount: "aimusei-sa"
+    enabled: true
 
   envVars:
     SPRING_DATA_MONGODB_URI: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000" # puoi anche metterla qui
