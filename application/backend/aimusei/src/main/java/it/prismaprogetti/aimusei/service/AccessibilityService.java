@@ -1,8 +1,12 @@
 package it.prismaprogetti.aimusei.service;
 
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +20,7 @@ import com.leonardo.aiservice.content.StandardText;
 import com.leonardo.aiservice.request.EtrRequest;
 import com.leonardo.aiservice.request.PictogramsRequest;
 import com.leonardo.aiservice.response.ImageResponse;
+import com.leonardo.aiservice.response.MultilingualTextResponse;
 import com.leonardo.aiservice.response.TextResponse;
 
 import it.prismaprogetti.aimusei.collection.Opera;
@@ -23,6 +28,8 @@ import it.prismaprogetti.aimusei.collection.Sintesi;
 import it.prismaprogetti.aimusei.controller.TextStatusResponse;
 import it.prismaprogetti.aimusei.model.GenerateImageRequest;
 import it.prismaprogetti.aimusei.model.HashValidateRequest;
+import it.prismaprogetti.aimusei.model.ImageToTextRequest;
+import it.prismaprogetti.aimusei.model.ImageToTextResponse;
 import it.prismaprogetti.aimusei.model.RegenerateSintesiRequest;
 import it.prismaprogetti.aimusei.model.StatoOpera;
 import it.prismaprogetti.aimusei.model.TextGeneratedRequest;
@@ -246,4 +253,40 @@ public class AccessibilityService {
 		return s3Service.getImage(idMuseo);
 	}
 
+	public ImageToTextResponse generateTextFromImage(ImageToTextRequest request) {
+		boolean hasBase64 = request.getBase64() != null && !request.getBase64().isEmpty();
+		boolean hasUrl = request.getUrl() != null && !request.getUrl().isEmpty();
+
+		if (hasBase64 && hasUrl) {
+			throw new IllegalArgumentException("Both base64 and url are provided. Only one is allowed.");
+		}
+		if (!hasBase64 && !hasUrl) {
+			throw new IllegalArgumentException("Either base64 or url must be provided.");
+		}
+		 // 2. Ottenimento dei byte dell'immagine
+        byte[] imageBytes;
+        if (hasBase64) {
+            // Decodifica del Base64
+            try {
+                imageBytes = Base64.getDecoder().decode(request.getBase64());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid base64 string", e);
+            }
+        } else {
+            // Download dell'immagine dall'URL
+            imageBytes = downloadImageFromUrl(request.getUrl());
+        }
+        // 3. Generazione del testo dall'immagine (da implementare)
+        MultilingualTextResponse generatedText = sintesiService.generateTextFromImageBytes(imageBytes);
+
+        return new ImageToTextResponse(generatedText);
+	}
+	
+	private byte[] downloadImageFromUrl(String urlString) {
+	    try (InputStream in = URI.create(urlString).toURL().openStream()) {
+	        return in.readAllBytes();
+	    } catch (IOException e) {
+	        throw new RuntimeException("Failed to download image from URL: " + urlString, e);
+	    }
+	}
 }

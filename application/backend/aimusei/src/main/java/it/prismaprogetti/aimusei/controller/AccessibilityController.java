@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.prismaprogetti.aimusei.model.GenerateImageRequest;
 import it.prismaprogetti.aimusei.model.HashValidateRequest;
+import it.prismaprogetti.aimusei.model.ImageToTextRequest;
+import it.prismaprogetti.aimusei.model.ImageToTextResponse;
 import it.prismaprogetti.aimusei.model.RegenerateSintesiRequest;
 import it.prismaprogetti.aimusei.model.TextGeneratedRequest;
 import it.prismaprogetti.aimusei.model.TextGeneratedResponse;
@@ -45,6 +47,7 @@ public class AccessibilityController {
 		TextOriginalResponse response = accessibilityService.getOriginalText(tag,originalText);
 		return ResponseEntity.ok(response);
 	}
+	
 	
 	@GetMapping("/texts/getStatus")
 	public ResponseEntity<TextStatusResponse> getStatus(    @RequestParam String tag, 
@@ -78,6 +81,12 @@ public class AccessibilityController {
 	@GetMapping("/texts/imageExists")
 	public ResponseEntity<Boolean> imageExists( @RequestParam String idMuseo) {
 		return ResponseEntity.ok(accessibilityService.imageExists(idMuseo));
+	}
+	
+	@PostMapping("/images/generateText")
+	public ResponseEntity<ImageToTextResponse> generateTextFromImage(@RequestBody ImageToTextRequest request) {
+	    ImageToTextResponse response = accessibilityService.generateTextFromImage(request);
+	    return ResponseEntity.ok(response);
 	}
 	
 	

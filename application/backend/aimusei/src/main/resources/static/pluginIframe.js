@@ -13,37 +13,45 @@
 
     this.iconBtnMap = new Map();
     this._ICONBTN_ = "iconBtn_";
+    this._autoTagSeq = 0;
     this.token = this.options.token;
     this.idMuseo = this.options.idMuseo;
 
     this.createShadowHost();
     this.injectCss();
     this.createIframe();
+    this.initPostMessageChannel();
     this.addObserverContentBody();
     this.listenMessages();
-    this.addCloseModalClick();
   }
 
-  // Listener globale su evento chiusura modale
+  // listener globale su evento chiusura modale
   IframePlugin.prototype.addCloseModalClick = function () {
-    document.addEventListener("DOMContentLoaded", () => {
-      if (this.closeBtn) {
-        this.closeBtn.addEventListener("click", () => {
-          console.log("Modal chiusa via bottone close");
-          this.closeModal();
-        });
-      }
-    });
+    const bind = () => {
+      if (!this.closeBtn) return;
+      this.closeBtn.addEventListener("click", () => {
+        console.log("Modal chiusa via bottone close");
+        this.closeModal();
+      });
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bind, { once: true });
+    } else {
+      bind();
+    }
   };
 
-  // Gestione messaggi da iframe
+
+  // gestione messaggi da iframe di salvataggio o check status
   IframePlugin.prototype.listenMessages = function () {
-    window.addEventListener("message", (event) => {
-      if (
-        this.options.urlIframe.indexOf(event.origin) == -1 ||
-        event.data.type !== "saved"
-      )
-        return;
+    // evita doppio bind se chiamata più volte
+    if (this._onMessageMain) return;
+    if (this._destroyed) return;
+
+    this._onMessageMain = (event) => {
+      if (event.origin !== this._targetOrigin) return;
+      if (!["saved", "check-status"].includes(event.data.type)) return;
 
       console.log("Iframe response:", event.data.body);
 
@@ -51,83 +59,76 @@
       const parsedBody = JSON.parse(JSON.stringify(event.data.body));
       const iconBtn = this.iconBtnMap.get(parsedBody.tag);
 
-      if (elem && iconBtn) {
-        elem.click();
-        iconBtn.src =
-          this.options.pathIcon +
-          "/icona_" +
-          (event.data?.status === "ok"
-            ? "verde"
+      if (!iconBtn) return;
+
+      if (event.data.type === "saved" && this.closeBtn)
+        this.closeBtn.click();
+      iconBtn.src =
+        this.options.pathIcon +
+        "/icona_" +
+        (event.data?.status === "ok"
+          ? "verde"
+          : event.data?.status === "ai"
+          ? "blu"
+          : "rossa") +
+        ".png";
+      let tooltip;
+      if (["INFO_MUSEO", "ETR"].includes(parsedBody.context)) {
+        tooltip =
+          event.data?.status === "ok"
+            ? "Easy to read revisionato"
             : event.data?.status === "ai"
-            ? "blu"
-            : "rossa") +
-          ".png";
-        let tooltip;
-        if (["INFO_MUSEO", "ETR"].includes(parsedBody.context)) {
-          tooltip =
-            event.data?.status === "ok"
-              ? "Easy to read revisionato"
-              : event.data?.status === "ai"
-              ? "Easy to read pronto"
-              : "Easy to read incompleto";
-        } else {
-          tooltip =
-            event.data?.status === "ok"
-              ? "Revisionato"
-              : event.data?.status === "ai"
-              ? "Semplificato"
-              : "Incompleto";
-        }
-        iconBtn.parentElement.title = tooltip;
+            ? "Easy to read pronto"
+            : "Easy to read incompleto";
       } else {
-        console.log("Errore rif. icona non trovato " + iconBtn);
+        tooltip =
+          event.data?.status === "ok"
+            ? "Revisionato"
+            : event.data?.status === "ai"
+            ? "Semplificato"
+            : "Incompleto";
       }
-    });
+      iconBtn.parentElement.title = tooltip;
+    };
+
+    window.addEventListener("message", this._onMessageMain);
   };
 
-  // Invio messaggi all’iframe
+  // invio messaggi all’iframe
   IframePlugin.prototype.messageToIframe = function (tag, description, context, title) {
-    const iframe = this.iframe;
-    //const iframe = document.getElementById('widget-iframe');
     const iconBtn = this.iconBtnMap.get(tag);
-
-    if (iframe && iconBtn) {
-      iframe.contentWindow.postMessage(
-        {
-          type: "init",
-          payload: {
-            text: description,
-            funz: "CREATE",
-            tag: tag,
-            context: context ? context : 'ETR', // verifica se deve impacchettare in json piu campi presi da tag child (indirizzo, categoria, textContent, etc)
-            canGeneratePdf: context === "INFO_MUSEO",
-            token: this.token,
-            idMuseo: this.idMuseo,
-            title: title ? title : ("Title " + tag),
-            status: iconBtn.src.includes("rossa.png")
-              ? "new"
-              : iconBtn.src.includes("blu.png")
-              ? "ai"
-              : "verified",
-          },
-        },
-        this.options.urlIframe
-      );
+    if (iconBtn) {
+      this.postToIframe({
+        type: "init",
+        payload: {
+          text: description,
+          funz: "CREATE",
+          tag: tag,
+          context: context ? context : 'ETR',
+          canGeneratePdf: context === "INFO_MUSEO",
+          token: this.token,
+          idMuseo: this.idMuseo,
+          title: title ? title : ("Title " + tag),
+          status: iconBtn.src.includes("rossa.png") ? "new" : (iconBtn.src.includes("blu.png") ? "ai" : "verified"),
+        }
+      });
     } else {
       console.log("Errore icona non trovata " + iconBtn);
     }
   };
 
-  // Creazione iframe dinamico
+  // creazione iframe dinamico
   IframePlugin.prototype.createIframe = function () {
     if (!this.options.pathIcon) alert("ATTENTION: pathIcon is undefined");
 
-    if (document.getElementById("widget-iframe")) return;
+    if (this.shadowRoot?.getElementById("widget-iframe")) return;
+
+    const base = this.options.urlIframe.replace(/\/+$/, "");
 
     const divContainer = document.createElement("div");
 
     divContainer.innerHTML = `<div class="modal fade" id="exampleModalAngular" style="opacity: 1;" tabindex="-1"
-        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        aria-labelledby="exampleModalLabel">
         <div class="modal-dialog" style="display:content; max-width: 80vw; min-width: 80vw; max-height: 80vh; min-height: 80vh; width: 80vw; height: 80vh;">
           <div class="modal-content" style="height: 100%; width: 100%;">
             <div class="modal-header">
@@ -145,7 +146,7 @@
 			  </button>
             </div>
             <div class="modal-body">
-              <iframe src="${this.options.urlIframe}/backoffice-iframe" id="widget-iframe"
+              <iframe src="${base}/backoffice-iframe" id="widget-iframe"
               style="width: 100%; height: 100%;"></iframe>
             </div>
           </div>
@@ -158,6 +159,8 @@
     this.closeBtn = this.shadowRoot.getElementById("closeAngularModal");
     console.log("Iframe modal widget inserted", this.modal);
 
+    this.addCloseModalClick();
+
     setTimeout(() => {
       this.executeIframePluginTextArea();
       this.executeIframePluginDivInput();
@@ -165,40 +168,29 @@
     }, 500);
   };
 
+  // invio alla coda se iframe non pronta, altrimenti invio diretto per il controllo dello stato
   IframePlugin.prototype.checkStatus = function (tag, description) {
-    const iframe = this.iframe;
-    if (tag && description) {
-      console.log("checkStatus called with tag:", tag, "description:", description);
-      iframe.contentWindow.postMessage(
-        {
-          type: "status-button",
-          payload: {
-            text: description,
-            tag: tag,
-            token: this.token,
-          }
-        },
-        this.options.urlIframe
-      );
-    }
+    if (!tag) return;
+    const text = (description ?? "").toString();
+    if (text.trim().length === 0) return;
+
+    this.postToIframe({
+      type: "status-button",
+      payload: { text, tag, token: this.token, }
+    });
   }
 
+  // estrazione testo dal form
   IframePlugin.prototype.extractTextForm = function(form, payload, index) {
-    form.querySelectorAll("input, textarea, select").forEach((input) => {
-      // extractedText += `${input.name || input.id}: ${input.value}\n\n`;
+    deepQueryAll(form, "input, textarea, select").forEach((input) => {
       const key = input.name || input.id || `field_${index}`;
       if (input.type === "checkbox") {
-        // Per checkbox: booleano singolo o array se più condividono lo stesso name
         if (
           input.name &&
-          form.querySelectorAll(
-            `input[type="checkbox"][name="${input.name}"]`
-          ).length > 1
+          deepQueryAll(form, `input[type="checkbox"][name="${input.name}"]`).length > 1
         ) {
           payload[input.name] = Array.from(
-            form.querySelectorAll(
-              `input[type="checkbox"][name="${input.name}"]`
-            )
+            deepQueryAll(form, `input[type="checkbox"][name="${input.name}"]`)
           )
             .filter((el) => el.checked)
             .map((el) => el.value);
@@ -209,7 +201,6 @@
         if (input.checked) {
           payload[key] = input.value;
         } else if (!(key in payload)) {
-          // nessuna selezione registrata finora
           payload[key] = null;
         }
       } else if (input.tagName.toLowerCase() === "select") {
@@ -227,29 +218,54 @@
     return payload;
   } 
 
-  IframePlugin.prototype.extractTextDiv = function(editor) {
-    let paragraphs = null;
-    let extractedText;
-    if (editor.tagName.toLowerCase() === "input") {
-      extractedText = editor.value;
-    } else {
-      // paragraphs = editor.querySelectorAll("p");
-      paragraphs = editor.querySelectorAll(".ql-container.ql-snow");
-      extractedText = Array.from(paragraphs)
-        .map((p) => p.innerText.trim())
-        .filter((t) => t.length > 0)
-        .join("\n\n");
-    }
-    return extractedText;
-  }
+  // estrazione testo dal div content editable
+  IframePlugin.prototype.extractTextAny = function (el) {
+    if (!el) return "";
 
+    const tag = (el.tagName || "").toLowerCase();
+
+    // input/textarea/select
+    if (tag === "textarea" || tag === "input" || tag === "select") {
+      return (el.value ?? "").toString();
+    }
+
+    // Quill: prova istanza (spesso è appesa come __quill)
+    const quill =
+      el.__quill ||
+      el.querySelector?.(".ql-editor")?.__quill ||
+      el.querySelector?.(".ql-container")?.__quill;
+
+    if (quill && typeof quill.getText === "function") {
+      return (quill.getText() ?? "").toString().trimEnd();
+    }
+
+    // Quill: testo dentro .ql-editor
+    const qlEditor = el.classList?.contains("ql-editor")
+      ? el
+      : el.querySelector?.(".ql-editor");
+
+    if (qlEditor) {
+      return (qlEditor.innerText ?? qlEditor.textContent ?? "").toString();
+    }
+
+    // contenteditable generico
+    const ce = el.isContentEditable ? el : el.querySelector?.('[contenteditable="true"]');
+    if (ce) {
+      return (ce.innerText ?? ce.textContent ?? "").toString();
+    }
+
+    // fallback
+    return (el.innerText ?? el.textContent ?? "").toString();
+  };
+
+  // scansione del DOM per textarea con attributo editor=iframe, estrazione testo e inserimento bottone per apertura modale, con gestione stato tramite icona colorata
   IframePlugin.prototype.executeIframePluginTextArea = function () {
     console.log("Observer DOM scanning for textarea...");
 
-    const textareas = document.querySelectorAll('textarea[editor="iframe"]');
+    const textareas = deepQueryAll(document, 'textarea[editor="iframe"]');
 
     textareas.forEach((textarea, index) => {
-      const tag = textarea.getAttribute("tag") || `AUTO_TAG_${index}`;
+      const tag = _ensureTag(textarea, "AUTO_TA");
       const status = textarea.getAttribute("text-status") || "NEW";
       const id = textarea.id || `textarea-${index}`;
       const title = textarea.getAttribute("data-title");
@@ -262,19 +278,19 @@
 
       const wrapper = document.createElement("div");
       wrapper.className = "d-flex align-items-center gap-3 mb-1";
+      wrapper.setAttribute("data-btn-iframe", "1");
 
       const button = document.createElement("button");
       button.type = "button";
       button.className = "btn btn-link";
       button.title = ["INFO_MUSEO", "ETR"].includes(context) ? 'Easy to read non pronto' : "Apri modale IFrame";
-      //button.setAttribute('data-bs-toggle', 'modal');
       button.setAttribute("data-bs-target", "#exampleModalAngular");
       button.style.padding = "0";
       button.style.borderRadius = "20%";
       textarea.setAttribute("textarea-link", "exampleModalAngular");
 
       const icon = document.createElement("img");
-      icon.id = this._ICONBTN_ + tag;
+      icon.id = this._ICONBTN_ + _safeId(tag);
       icon.alt = "Icona stato";
       icon.style.width = "2rem";
       icon.style.height = "2rem";
@@ -287,19 +303,18 @@
         NEW_VERSION: "rossa",
       };
 
-      // check status button
-      this.checkStatus(tag, textarea.value);
-
       const iconColor = statusToColor[status] || "rossa";
       icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
 
       this.iconBtnMap.set(tag, icon);
 
-      // click con arrow function mantiene il contesto this
+      // check status button
+      this.checkStatus(tag, this.extractTextAny(textarea));
+
       button.onclick = () => {
         window.currentTextArea = textarea;
         this.openModal();
-        this.messageToIframe(tag, textarea.value, context, title);
+        this.messageToIframe(tag, this.extractTextAny(textarea), context, title);
       };
 
       button.appendChild(icon);
@@ -309,15 +324,14 @@
     });
   };
 
+  // scansione del DOM per div o input con attributo editor=iframe, estrazione testo e inserimento bottone per apertura modale, con gestione stato tramite icona colorata
   IframePlugin.prototype.executeIframePluginDivInput = function () {
     console.log("Observer DOM scanning for tag div[editor] e input[editor]...");
 
-    const editors = document.querySelectorAll(
-      'div[editor="iframe"], input[editor="iframe"]'
-    );
+    const editors = deepQueryAll(document, 'div[editor="iframe"], input[editor="iframe"]');
 
     editors.forEach((editor, index) => {
-      const tag = editor.getAttribute("tag") || `AUTO_TAG_${index}`;
+      const tag = _ensureTag(editor, "AUTO_ED");
       const status = editor.getAttribute("text-status") || "NEW";
       const title = editor.getAttribute("data-title");
       const context = editor.getAttribute("context");
@@ -328,7 +342,6 @@
 
       console.log(`Found editor [${tag}], attaching pluginIframe button`);
 
-      // wrapper bottone
       const button = document.createElement("button");
       button.type = "button";
       button.className = "btn btn-link";
@@ -338,7 +351,7 @@
       editor.setAttribute("textarea-link", "exampleModalAngular");
 
       const icon = document.createElement("img");
-      icon.id = this._ICONBTN_ + tag;
+      icon.id = this._ICONBTN_ + _safeId(tag);
       icon.alt = "Icona stato";
       icon.style.width = "2rem";
       icon.style.height = "2rem";
@@ -351,18 +364,18 @@
         NEW_VERSION: "rossa",
       };
 
-      // check status button
-      let extractedText = this.extractTextDiv(editor);
-      this.checkStatus(tag, extractedText);
-
       const iconColor = statusToColor[status] || "rossa";
       icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
 
       this.iconBtnMap.set(tag, icon);
 
+      // check status button
+      let extractedText = this.extractTextAny(editor);
+      this.checkStatus(tag, extractedText);
+
       button.onclick = () => {
         window.currentEditor = editor;
-        extractedText = this.extractTextDiv(editor);
+        extractedText = this.extractTextAny(editor);
         console.log("Extracted text for iframe:", extractedText);
         this.openModal();
         this.messageToIframe(tag, extractedText, context, title);
@@ -372,14 +385,14 @@
       let toolbar = null;
       if (editor.tagName.toLowerCase() === "input") {
         // find input wrapper item closest
-        // toolbar = editor.closest('.v-input__control')?.querySelector('.v-input__slot');
         toolbar = editor.parentElement;
         console.log(`Matched wrapper [${tag}] for Input`, toolbar);
       } else {
         // find toolbar closest
-        toolbar = editor
-          .closest(".quillWrapper")
-          ?.querySelector(".ql-toolbar.ql-snow");
+        toolbar =
+          editor.closest(".quillWrapper")?.querySelector(".ql-toolbar") ||
+          editor.closest(".ql-container")?.parentElement?.querySelector(".ql-toolbar") ||
+          editor.parentElement?.querySelector?.(".ql-toolbar");
         console.log(`Matched wrapper [${tag}] for Toolbar`, toolbar);
       }
       if (toolbar) {
@@ -392,6 +405,7 @@
         const span = document.createElement("span");
         span.className = "ql-formats";
         span.appendChild(button);
+        span.setAttribute("data-btn-iframe", "1");
 
         toolbar.appendChild(span);
         console.log(`Added button inside Quill toolbar for TAG: ${tag}`);
@@ -403,13 +417,14 @@
     });
   };
 
+  // scansione del DOM per form con attributo editor=iframe, estrazione testo e inserimento bottone per apertura modale, con gestione stato tramite icona colorata
   IframePlugin.prototype.executeIframePluginForm = function () {
     console.log("Observer DOM scanning for form[editor]...");
 
-    const forms = document.querySelectorAll('form[editor="iframe"]');
+    const forms = deepQueryAll(document, 'form[editor="iframe"]');
 
     forms.forEach((form, index) => {
-      const tag = form.getAttribute("tag") || `AUTO_TAG_${index}`;
+      const tag = _ensureTag(form, `AUTO_FM_${index}`);
       const status = form.getAttribute("text-status") || "NEW";
       const title = form.getAttribute("data-title");
 
@@ -419,7 +434,6 @@
 
       console.log(`Found form [${tag}], attaching pluginIframe button`);
 
-      // wrapper bottone
       const button = document.createElement("button");
       button.type = "button";
       button.className = "btn btn-link";
@@ -429,11 +443,11 @@
       form.setAttribute("form-link", "exampleModalAngular");
 
       const icon = document.createElement("img");
-      icon.id = this._ICONBTN_ + tag;
+      icon.id = this._ICONBTN_ + _safeId(tag);
       icon.alt = "Icona stato";
       icon.style.width = "2rem";
       icon.style.height = "2rem";
-      icon.setAttribute("form-tag", this._ICONBTN_ + tag);
+      icon.setAttribute("form-tag", this._ICONBTN_ + _safeId(tag));
 
       const statusToColor = {
         NEW: "rossa",
@@ -442,15 +456,15 @@
         NEW_VERSION: "rossa",
       };
 
-      // check status button
-      let payload = this.extractTextForm(form, {}, index);
-      let extractedText = JSON.stringify(payload);
-      this.checkStatus(tag, extractedText);
-
       const iconColor = statusToColor[status] || "rossa";
       icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
 
       this.iconBtnMap.set(tag, icon);
+
+      // check status button
+      let payload = this.extractTextForm(form, {}, index);
+      let extractedText = JSON.stringify(payload);
+      this.checkStatus(tag, extractedText);
 
       button.onclick = () => {
         window.currentEditor = form;
@@ -478,6 +492,7 @@
         const span = document.createElement("span");
         span.className = "ql-formats";
         span.appendChild(button);
+        span.setAttribute("data-btn-iframe", "1");
 
         toolbar.appendChild(span);
         console.log(`Added button inside Quill toolbar for TAG: ${tag}`);
@@ -489,18 +504,27 @@
     });
   };
 
+  // aggiunta observer su body per rilevare dinamicamente nuovi editor o form aggiunti dopo il caricamento iniziale, con possibilità di attivazione/disattivazione tramite opzione
   IframePlugin.prototype.addObserverContentBody = function () {
-    this.observer = new MutationObserver(() => {
+    let scheduled = false;
+    const run = () => {
+      scheduled = false;
       this.executeIframePluginTextArea();
       this.executeIframePluginDivInput();
       this.executeIframePluginForm();
       this.cleanupRemovedEditors();
+    };
+    this.observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      setTimeout(run, 100);
     });
 
-    //option default
+    // option default
     if (this.options.observerDom) this.startObserver();
   };
 
+  // ferma l'observer per evitare esecuzioni multiple durante operazioni di pulizia o modifiche dinamiche importanti, da riavviare manualmente dopo con startObserver
   IframePlugin.prototype.stopObserver = function () {
     if (this.observer) {
       this.observer.disconnect();
@@ -510,13 +534,14 @@
     }
   };
 
+  // riavvia l'observer, utile dopo operazioni di pulizia o modifiche dinamiche importanti per assicurarsi che il plugin rilevi correttamente i nuovi editor o quelli rimossi
   IframePlugin.prototype.startObserver = function () {
     if (this.observer) {
       this.observer.observe(document.body, {
         childList: true,
         subtree: true,
-        attributes: true,
-        attributeFilter: ["style"],
+        // attributes: true,
+        // attributeFilter: ["style", "class", "disabled"]
       });
       console.log("IframePlugin: MutationObserver (re)started successfully.");
     } else {
@@ -526,63 +551,47 @@
     }
   };
 
+  // rimuove i bottoni associati a editor che non esistono più nel DOM, per evitare accumulo di bottoni orfani dopo modifiche dinamiche
   IframePlugin.prototype.cleanupRemovedEditors = function () {
     console.log("Cleaning orphaned iframe buttons...");
 
     const existingTags = Array.from(
-      document.querySelectorAll(
-        'div[editor="iframe"], input[editor="iframe"], textarea[editor="iframe"]'
-      )
+      deepQueryAll(document, 'div[editor="iframe"], input[editor="iframe"], textarea[editor="iframe"], form[editor="iframe"]')
     )
       .map((el) => el.getAttribute("tag"))
       .filter(Boolean);
 
-    // Scorre la mappa degli iconButton registrati
     this.iconBtnMap.forEach((iconElement, tag) => {
-      if (!existingTags.includes(tag)) {
-        console.warn(`🗑️ Removing orphaned button for tag: ${tag}`);
+      if (existingTags.includes(tag)) return;
 
-        // Cerca l'immagine nel DOM tramite id esatto
-        const iconId = `${this._ICONBTN_}${tag}`;
-        const imgElement = document.getElementById(iconId);
+      console.warn(`🗑️ Removing orphaned button for tag: ${tag}`);
 
-        if (imgElement) {
-          // trova il container "reale" del bottone
-          const buttonContainer =
-            imgElement.closest("[data-btn-iframe]") || // caso v-tabs
-            imgElement.closest("button")?.parentElement || // caso dentro un <span>
-            imgElement.parentElement; // fallback finale
-
-          if (buttonContainer && buttonContainer.parentElement) {
-            buttonContainer.remove();
-            console.log(`Removed DOM container for ${iconId}`);
-          } else {
-            console.warn(`No container found for ${iconId}`);
-            imgElement.remove(); // fallback: elimina solo l’immagine
-          }
-        } else {
-          console.warn(`?? Image not found for tag: ${tag}`);
-        }
-        if (buttonContainer && buttonContainer.parentElement) {
-          buttonContainer.remove();
-          console.log(`Removed DOM container for ${iconId}`);
-        } else {
-          console.warn(`No container found for ${iconId}`);
-          imgElement.remove(); // fallback: elimina solo l’immagine
-        }
-      } else {
-        console.warn(`⚠️ Image not found for tag: ${tag}`);
+      const imgElement = iconElement;
+      if (!imgElement || !imgElement.isConnected) {
+        this.iconBtnMap.delete(tag);
+        return;
       }
 
-      // Rimuove il riferimento dalla mappa
+      const buttonContainer =
+        imgElement.closest("[data-btn-iframe]") ||
+        imgElement.closest("button")?.parentElement ||
+        imgElement.parentElement;
+
+      if (buttonContainer?.parentElement) {
+        buttonContainer.remove();
+      } else {
+        imgElement.remove();
+      }
+
       this.iconBtnMap.delete(tag);
     });
 
     console.log(`Cleanup completed. Active buttons: ${this.iconBtnMap.size}`);
   };
 
+  // chiusura modale iframe
   IframePlugin.prototype.openModal = function () {
-    //const modal = this.shadowRoot.querySelector(".modal");
+    if (!this.modal) return;
     const modal = this.modal;
     modal.classList.add("show");
     modal.style.display = "flex";
@@ -592,8 +601,9 @@
     });
   };
 
+  // apertura modale iframe
   IframePlugin.prototype.closeModal = function () {
-    //const modal = this.shadowRoot.querySelector(".modal");
+    if (!this.modal) return;
     const modal = this.modal;
     const fadeOut = modal.animate([{ opacity: 1 }, { opacity: 0 }], {
       duration: 300,
@@ -605,6 +615,7 @@
     };
   };
 
+  // inutilizzato
   IframePlugin.prototype.addNewTextAreaSection = function () {
     const container = document.querySelector("#dynamic-sections") || document.body;
     const section = document.createElement("div");
@@ -626,7 +637,7 @@
     container.appendChild(section);
   };
 
-  // Creazione host nel body per uso Shadow DOM
+  // creazione host nel body per uso Shadow DOM
   IframePlugin.prototype.createShadowHost = function () {
     if (document.getElementById("iframe-plugin-host")) {
       this.shadowHost = document.getElementById("iframe-plugin-host");
@@ -639,7 +650,7 @@
     this.shadowRoot = this.shadowHost.attachShadow({ mode: "open" });
   };
 
-  // CSS Modal Style
+  // css Modal Style
   IframePlugin.prototype.injectCss = function () {
     if (this.shadowRoot.querySelector("#iframe-plugin-styles")) return;
 
@@ -716,6 +727,180 @@
     `;
     this.shadowRoot.appendChild(style);
   };
+
+  // inizializzazione canale di comunicazione postMessage con l'iframe, gestione stato ready e coda messaggi
+  IframePlugin.prototype.initPostMessageChannel = function () {
+    this._targetOrigin = new URL(this.options.urlIframe).origin;
+    this._pmReady = false;
+    this._pmQueue = new Map();
+    this._destroyed = false;
+    this._pingTimer = null;
+
+    // quando l'iframe ricarica, torna non-ready
+    this._onIframeLoad = () => {
+      this._pmReady = false;
+      // ping
+      this._pingIframeReady();
+    };
+    this.iframe.addEventListener("load", this._onIframeLoad);
+
+    // ricezione messaggi dall'iframe
+    this._onMessageReady = (event) => {
+      if (this._destroyed) return;
+      if (event.origin !== this._targetOrigin) return;
+
+      if (event.data && event.data.type === "iframe-ready") {
+        this._pmReady = true;
+        this._flushPmQueue();
+      }
+    };
+    window.addEventListener("message", this._onMessageReady);
+
+    // prima ping
+    this._pingIframeReady();
+  };
+
+  // ping ricorsivo finché l'iframe non risponde ready, con un numero massimo di tentativi per evitare loop infiniti
+  IframePlugin.prototype._pingIframeReady = function () {
+    if (this._destroyed) return;
+    if (!this.iframe?.contentWindow) return;
+
+    // cancella eventuale ping già attivo
+    if (this._pingTimer) {
+      clearTimeout(this._pingTimer);
+      this._pingTimer = null;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 20;
+
+    const tick = () => {
+      if (this._destroyed) return;
+      if (this._pmReady) return;
+      if (attempts++ >= maxAttempts) return;
+
+      this.iframe.contentWindow.postMessage({ type: "ping-ready" }, this._targetOrigin);
+
+      this._pingTimer = setTimeout(tick, 1000);
+    };
+
+    tick();
+  };
+
+
+  // invio messaggi in coda se iframe non pronto, altrimenti invio diretto
+  IframePlugin.prototype._flushPmQueue = function () {
+    if (this._destroyed) return;
+
+    for (const msg of this._pmQueue.values()) {
+      this.iframe.contentWindow.postMessage(msg, this._targetOrigin);
+    }
+    this._pmQueue.clear();
+  };
+
+  // invio messaggi all'iframe, con gestione coda se non pronto
+  IframePlugin.prototype.postToIframe = function (msg) {
+    if (!this.iframe?.contentWindow) return;
+    if (this._destroyed) return;
+
+    if (!this._pmReady) {
+      const key = msg.type + ":" + (msg.payload?.tag ?? "");
+      this._pmQueue.set(key, msg); // mantiene solo l’ultimo per tag
+      return;
+    }
+
+    this.iframe.contentWindow.postMessage(msg, this._targetOrigin);
+  };
+
+  // pulizia completa del plugin, rimozione observer, listener e bottoni, da chiamare quando si vuole disattivare completamente il plugin o prima di rimuovere lo shadow host
+  IframePlugin.prototype.destroy = function () {
+    if (this._destroyed) return;
+    this._destroyed = true;
+
+    // stop ping loop e svuota coda
+    _stopPing();
+    if (this._pmQueue) this._pmQueue.clear();
+
+    // stop observer
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+
+    // rimuovi listener window message (se li hai salvati come proprietà)
+    if (this._onMessageMain) {
+      window.removeEventListener("message", this._onMessageMain);
+      this._onMessageMain = null;
+    }
+    if (this._onMessageReady) {
+      window.removeEventListener("message", this._onMessageReady);
+      this._onMessageReady = null;
+    }
+
+    // rimuovi listener iframe load (se salvato)
+    if (this.iframe && this._onIframeLoad) {
+      this.iframe.removeEventListener("load", this._onIframeLoad);
+      this._onIframeLoad = null;
+    }
+
+    // rimuovi UI creata dal plugin
+    try {
+      deepQueryAll(document, '[data-btn-iframe="1"]').forEach((n) => n.remove());
+    } catch (_) {}
+
+    // pulizia mappa
+    this.iconBtnMap.clear();
+
+    // rimuovi modale dal shadow root
+    if (this.shadowRoot) {
+      const modal = this.shadowRoot.getElementById("exampleModalAngular");
+      if (modal) modal.remove();
+    }
+
+    // rimuovi shadow host
+    // if (this.shadowHost) this.shadowHost.remove();
+  };
+
+  // funzione helper per querySelectorAll che scende anche dentro shadow DOM, utile per estrarre testo o trovare editor dinamici in qualsiasi punto del DOM
+  function deepQueryAll(root, selector, out = []) {
+    out.push(...root.querySelectorAll(selector));
+    const walk = (node) => {
+      node.querySelectorAll("*").forEach((el) => {
+        if (el.shadowRoot) {
+          out.push(...el.shadowRoot.querySelectorAll(selector));
+          walk(el.shadowRoot);
+        }
+      });
+    };
+    walk(root);
+    return out;
+  }
+
+  // funzione helper per creare un ID sicuro da qualsiasi stringa, utile per generare ID di elementi associati a tag dinamici senza rischiare caratteri non validi
+  function _safeId(tag) {
+    return (tag || "").toString().replace(/[^a-zA-Z0-9\-_:.]/g, "_");
+  }
+
+  // funzione helper per assicurarsi di avere un tag unico e persistente per ogni editor, con possibilità di definizione manuale tramite attributo o generazione automatica
+  function _ensureTag(el, prefix) {
+    let tag = el.getAttribute("tag");
+    if (tag && tag.trim()) return tag.trim();
+
+    tag = el.getAttribute("data-iframe-auto-tag");
+    if (!tag) {
+      tag = `${prefix}_${++this._autoTagSeq}`;
+      el.setAttribute("data-iframe-auto-tag", tag);
+    }
+    return tag;
+  }
+
+  // funzione helper per fermare il ping ricorsivo, utile in destroy o quando si vuole evitare ulteriori tentativi di comunicazione con l'iframe
+  function _stopPing() {
+    if (this._pingTimer) {
+      clearTimeout(this._pingTimer);
+      this._pingTimer = null;
+    }
+  }
 
   global.IframePlugin = IframePlugin;
 })(window);

@@ -71,6 +71,10 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     window.addEventListener('message', (event) => {
+      if (event.data?.type === "ping-ready") {
+        window.parent.postMessage({ type: "iframe-ready" }, '*');
+        return;
+      }
       const { payload } = event.data;
       if (!payload)
         return;
@@ -344,7 +348,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
 
   private updateView(res: OriginalText) {
     this.form.get('input')?.setValue(this.text);
-    const date = res.textSimplified.dateInsert ?? new Date();
+    const date = res.textSimplified?.dateInsert ?? new Date();
     this.form.get('version')?.setValue(`V ${res.textVersion}.${new Date(date).toLocaleDateString()}`);
     setTimeout(() => {
       this.sessionService.showSpinner = true;
@@ -402,7 +406,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
       .subscribe((resp) => {
         window.parent.postMessage(
           {
-            type: 'saved',
+            type: 'check-status',
             id: 'xyz',
             body: {
               tag: tag,
