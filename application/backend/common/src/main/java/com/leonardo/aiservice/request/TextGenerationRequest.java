@@ -22,6 +22,9 @@ import lombok.ToString;
 public class TextGenerationRequest implements AiRequest{
     private final ImageContent content;
 
+    /* questo sarebbe qualsiasi informazione sul contenuto dell'immagine che può aiutare l'AI a generare una descrizione. Si consiglia fortemente di utilizzarlo. Può anche essere semplicemente il nome dell'opera o del museo, o anche l'alt-text statico originario */
+    private final String hint;
+
     @Override
     public ImageContent getContent() {
         return content;

@@ -1,7 +1,7 @@
 package com.leonardo.aiservice.content;
 
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 import lombok.ToString;
 import lombok.AccessLevel;
 
@@ -18,8 +17,7 @@ import lombok.AccessLevel;
  * rappresenta una mappa che associa ad una stringa un'immagine. 
  * E' utilizzato quindi per ritornare il risultato di una PictogramsRequest, dove le chiavi sono parole (anche più di una)
  * del contenuto della richiesta, ed è associata l'immagine corrispondente.
- * L'implementazione della mappa è una LinkedHashMap, che permette di iterare sulla mappa mantenendo l'ordine che le parole hanno
- * nel testo originale
+ * L'implementazione della mappa è una Lista di map entries, che permette di iterare mantenendo l'ordine che le parole hanno nel testo originale e implementando l'associazione parole-immagine, permettendo allo stesso tempo i duplicati
  */
 
 @Getter
@@ -30,6 +28,6 @@ import lombok.AccessLevel;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ImageMapContent implements Content {
-    private final LinkedHashMap<String, ImageContent> value;
+    private final List<Map.Entry<String, ImageContent>> value;
 
 }

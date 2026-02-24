@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MetaMassiveTexts {
 
-	private String lang;
 	private int processed;
 	private int ok;
 	private int failed;

@@ -26,11 +26,15 @@ import lombok.ToString;
 public class PictogramsRequest implements AiRequest {
     private final TextContent content;
     @Singular("wordToPictogram")
-    private final Map<String, ImageContent> wordsToPictograms;
+    private final Map<String, ImageContent> wordsToPictograms; // TODO magari un tipo dedicato?
 
     @Override
     public TextContent getContent() {
         return content;
+    }
+
+    public Map<String, ImageContent> getWordsToPictograms() {
+        return wordsToPictograms;
     }
 
 }

@@ -6,13 +6,16 @@
     </div>
   </div>
   <div class="bg-light px-3 py-4">
-    <div class="d-flex justify-content-between align-items-center">
-      <div class="fw-bold">
-        <span>{{ context == 'INFO_MUSEO' ? '' : 'Descrizione museo' }}</span>
-        </div>
+    <div class="d-flex justify-content-end align-items-center">
       <div class="d-flex align-items-center gap-3">
         <label for="version" class="form-label">Versione</label>
-        <input type="text" id="version" class="form-control-plaintext rounded px-2" formControlName="version" readonly />
+        <input
+          type="text"
+          id="version"
+          class="form-control-plaintext rounded px-2"
+          formControlName="version"
+          readonly
+        />
       </div>
     </div>
     <div class="form-group mx-0 mt-3 p-0">
@@ -53,7 +56,13 @@
           class="accordion-item"
           *ngFor="let t of getResults(); let i = index"
         >
-          <ng-container *ngIf="(t.key === 'EASY_TO_READ' && ['ETR', 'INFO_MUSEO'].includes(context)) || !context">
+          <ng-container
+            *ngIf="
+              (t.key === 'EASY_TO_READ' &&
+                ['ETR', 'INFO_MUSEO'].includes(context)) ||
+              !context
+            "
+          >
             <h2 class="accordion-header">
               <button
                 class="accordion-button collapsed text-decoration-none"
@@ -73,7 +82,8 @@
                     <mat-icon
                       style="color: green"
                       *ngIf="
-                        form.get(t.key)?.value?.length > 0 && checkValidate(t.key)
+                        form.get(t.key)?.value?.length > 0 &&
+                        checkValidate(t.key)
                       "
                       [ngClass]="{ disabled: checkEdit(t.key) }"
                       >check_circle</mat-icon
@@ -100,7 +110,9 @@
                         Editor:
                         {{ editors[t.key] ? editors[t.key] : "Semplificato" }}
                       </div>
-                      <div class="fit-content">Stato: {{ getStatus(t.key) }}</div>
+                      <div class="fit-content">
+                        Stato: {{ getStatus(t.key) }}
+                      </div>
                       <div class="fit-content" *ngIf="lastUpdates[t.key]">
                         Ultima modifica: {{ formatDate(lastUpdates[t.key]) }}
                       </div>
@@ -124,7 +136,11 @@
               data-bs-parent="#accordionExample"
             >
               <div class="accordion-body p-0">
-                <div class="custom-scroll py-3" *ngIf="!checkEdit(t.key)" style="white-space: pre-line">
+                <div
+                  class="custom-scroll py-3"
+                  *ngIf="!checkEdit(t.key)"
+                  style="white-space: pre-line"
+                >
                   {{ form.get(t.key)?.value }}
                 </div>
               </div>
@@ -138,7 +154,11 @@
               <div class="d-flex justify-content-end mt-3 px-3">
                 <mat-icon
                   *ngIf="checkEdit(t.key)"
-                  (click)="edit[t.key] = false; form.get(t.key)?.setValue(oldText); oldText = '';"
+                  (click)="
+                    edit[t.key] = false;
+                    form.get(t.key)?.setValue(oldText);
+                    oldText = ''
+                  "
                   role="button"
                   title="Annulla modifiche"
                   style="color: red"
@@ -151,7 +171,9 @@
                   title="Modifica"
                   class="primary-color"
                   [ngClass]="
-                    !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0 || disabled
+                    !form.get(t.key)?.value ||
+                    form.get(t.key)?.value?.length == 0 ||
+                    disabled
                       ? 'disabled'
                       : ''
                   "
@@ -164,7 +186,9 @@
                   title="Salva e valida"
                   style="color: green"
                   [ngClass]="
-                    !form.get(t.key)?.value || form.get(t.key)?.value?.length == 0 || disabled
+                    !form.get(t.key)?.value ||
+                    form.get(t.key)?.value?.length == 0 ||
+                    disabled
                       ? 'disabled'
                       : ''
                   "
@@ -175,7 +199,7 @@
                   (click)="regenerate(t.key)"
                   role="button"
                   title="Rigenera"
-                  [ngClass]="{ 'disabled': checkValidate(t.key) || disabled }"
+                  [ngClass]="{ disabled: checkValidate(t.key) || disabled }"
                   >refresh</mat-icon
                 >
                 <!-- <mat-icon
@@ -197,12 +221,16 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <div class="d-flex justify-content-end align-items-center mt-3 gap-2">
     <button
-      *ngIf="canGeneratePdf && pdfExist && form.get(MOCKED_TYPE)?.value?.length > 0 && checkValidate(MOCKED_TYPE)"
+      *ngIf="
+        canGeneratePdf &&
+        pdfExist &&
+        form.get(MOCKED_TYPE)?.value?.length > 0 &&
+        checkValidate(MOCKED_TYPE)
+      "
       class="btn btn-outline-primary custom-color-hover"
       [disabled]="disabled"
       (click)="viewPdf()"
@@ -210,7 +238,11 @@
       VISUALIZZA PDF
     </button>
     <button
-      *ngIf="canGeneratePdf && form.get(MOCKED_TYPE)?.value?.length > 0 && checkValidate(MOCKED_TYPE)"
+      *ngIf="
+        canGeneratePdf &&
+        form.get(MOCKED_TYPE)?.value?.length > 0 &&
+        checkValidate(MOCKED_TYPE)
+      "
       class="btn btn-outline-primary custom-color-hover"
       [disabled]="disabled"
       (click)="generaPdf()"

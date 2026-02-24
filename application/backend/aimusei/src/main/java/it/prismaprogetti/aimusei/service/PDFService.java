@@ -2,7 +2,6 @@ package it.prismaprogetti.aimusei.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +32,7 @@ public class PDFService {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 			
 			// Ottieni le entry (chiave-valore) dalla mappa
-			List<Map.Entry<String, ImageContent>> entries = new ArrayList<>(content.getValue().entrySet());
+			List<Map.Entry<String, ImageContent>> entries = content.getValue();
 			
 			PdfWriter writer = new PdfWriter(baos);
 			PdfDocument pdfDoc = new PdfDocument(writer);

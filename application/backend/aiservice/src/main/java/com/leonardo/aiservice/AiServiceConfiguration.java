@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.leonardo.aiservice.internal.AiGatewayClient;
@@ -52,7 +53,10 @@ public class AiServiceConfiguration {
     @ConditionalOnMissingBean(WebClient.class)
     WebClient webClient(WebClient.Builder builder, AiServiceProperties props) {
       return builder
-          .clientConnector(new ReactorClientHttpConnector(
+    	.exchangeStrategies(ExchangeStrategies.builder()
+    		            .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024)) // 10 MB
+    		            .build())
+         .clientConnector(new ReactorClientHttpConnector(
               HttpClient.create()
                   .responseTimeout(Duration.ofSeconds(props.timeoutSeconds()))
           ))

@@ -16,6 +16,7 @@
     this._autoTagSeq = 0;
     this.token = this.options.token;
     this.idMuseo = this.options.idMuseo;
+    this._lastStatusText = new Map();
 
     this.createShadowHost();
     this.injectCss();
@@ -42,7 +43,6 @@
     }
   };
 
-
   // gestione messaggi da iframe di salvataggio o check status
   IframePlugin.prototype.listenMessages = function () {
     // evita doppio bind se chiamata più volte
@@ -55,7 +55,6 @@
 
       console.log("Iframe response:", event.data.body);
 
-      let elem = this.closeBtn;
       const parsedBody = JSON.parse(JSON.stringify(event.data.body));
       const iconBtn = this.iconBtnMap.get(parsedBody.tag);
 
@@ -170,6 +169,7 @@
 
   // invio alla coda se iframe non pronta, altrimenti invio diretto per il controllo dello stato
   IframePlugin.prototype.checkStatus = function (tag, description) {
+    if (this._destroyed) return;
     if (!tag) return;
     const text = (description ?? "").toString();
     if (text.trim().length === 0) return;
@@ -265,7 +265,7 @@
     const textareas = deepQueryAll(document, 'textarea[editor="iframe"]');
 
     textareas.forEach((textarea, index) => {
-      const tag = _ensureTag(textarea, "AUTO_TA");
+      const tag = this._ensureTag(textarea, "AUTO_TA");
       const status = textarea.getAttribute("text-status") || "NEW";
       const id = textarea.id || `textarea-${index}`;
       const title = textarea.getAttribute("data-title");
@@ -308,6 +308,8 @@
 
       this.iconBtnMap.set(tag, icon);
 
+      this._attachStatusWatch(textarea, tag, () => this.extractTextAny(textarea));
+
       // check status button
       this.checkStatus(tag, this.extractTextAny(textarea));
 
@@ -331,7 +333,7 @@
     const editors = deepQueryAll(document, 'div[editor="iframe"], input[editor="iframe"]');
 
     editors.forEach((editor, index) => {
-      const tag = _ensureTag(editor, "AUTO_ED");
+      const tag = this._ensureTag(editor, "AUTO_ED");
       const status = editor.getAttribute("text-status") || "NEW";
       const title = editor.getAttribute("data-title");
       const context = editor.getAttribute("context");
@@ -368,6 +370,8 @@
       icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
 
       this.iconBtnMap.set(tag, icon);
+
+      this._attachStatusWatch(editor, tag, () => this.extractTextAny(editor));
 
       // check status button
       let extractedText = this.extractTextAny(editor);
@@ -424,7 +428,7 @@
     const forms = deepQueryAll(document, 'form[editor="iframe"]');
 
     forms.forEach((form, index) => {
-      const tag = _ensureTag(form, `AUTO_FM_${index}`);
+      const tag = this._ensureTag(form, `AUTO_FM_${index}`);
       const status = form.getAttribute("text-status") || "NEW";
       const title = form.getAttribute("data-title");
 
@@ -460,6 +464,8 @@
       icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
 
       this.iconBtnMap.set(tag, icon);
+
+      this._attachStatusWatch(form, tag, () => JSON.stringify(this.extractTextForm(form, {}, index)));
 
       // check status button
       let payload = this.extractTextForm(form, {}, index);
@@ -787,7 +793,6 @@
     tick();
   };
 
-
   // invio messaggi in coda se iframe non pronto, altrimenti invio diretto
   IframePlugin.prototype._flushPmQueue = function () {
     if (this._destroyed) return;
@@ -818,7 +823,7 @@
     this._destroyed = true;
 
     // stop ping loop e svuota coda
-    _stopPing();
+    this._stopPing();
     if (this._pmQueue) this._pmQueue.clear();
 
     // stop observer
@@ -861,6 +866,87 @@
     // if (this.shadowHost) this.shadowHost.remove();
   };
 
+  // setter id museo
+  IframePlugin.prototype.setIdMuseo = function (idMuseo) {
+    this.idMuseo = idMuseo;
+  };
+
+  // setter token
+  IframePlugin.prototype.setToken = function (token) {
+    this.token = token;
+  };
+
+  // funzione helper per assicurarsi di avere un tag unico e persistente per ogni editor, con possibilità di definizione manuale tramite attributo o generazione automatica
+  IframePlugin.prototype._ensureTag = function (el, prefix) {
+    let tag = el.getAttribute("tag");
+    if (tag && tag.trim()) return tag.trim();
+
+    tag = el.getAttribute("data-iframe-auto-tag");
+    if (!tag) {
+      tag = `${prefix}_${++this._autoTagSeq}`;
+      el.setAttribute("data-iframe-auto-tag", tag);
+      el.setAttribute("tag", tag);
+    }
+    return tag;
+  }
+
+  // funzione helper per fermare il ping ricorsivo, utile in destroy o quando si vuole evitare ulteriori tentativi di comunicazione con l'iframe
+  IframePlugin.prototype._stopPing = function () {
+    if (this._pingTimer) {
+      clearTimeout(this._pingTimer);
+      this._pingTimer = null;
+    }
+  }
+
+  // funzione helper per attaccare listener di input/change su un elemento o suoi contenteditable figli, con debounce e callback per estrazione testo, utile per aggiornare lo stato del bottone in base al contenuto dell'editor
+  IframePlugin.prototype._attachStatusWatch = function (el, tag, getTextFn) {
+    if (!el || !tag) return;
+
+    // evita doppi bind
+    if (el.getAttribute("data-iframe-watch") === "1") return;
+    el.setAttribute("data-iframe-watch", "1");
+
+    // debounce per non spammare status-button
+    const schedule = () => {
+      const text = getTextFn();
+      const prev = this._lastStatusText.get(tag);
+      if (text?.trim() === prev?.trim()) return;
+      this._lastStatusText.set(tag, text);
+      this.checkStatus(tag, text);
+    };
+
+    const t = (el.tagName || "").toLowerCase();
+
+    // textarea/input/select
+    if (t === "textarea" || t === "input" || t === "select") {
+      el.addEventListener("input", schedule);
+      el.addEventListener("change", schedule);
+    }
+
+    // contenteditable (div editor)
+    if (el.isContentEditable) {
+      el.addEventListener("input", schedule);
+      el.addEventListener("blur", schedule);
+    } else {
+      const ce = el.querySelector?.('[contenteditable="true"]');
+      if (ce && ce.getAttribute("data-iframe-watch") !== "1") {
+        ce.setAttribute("data-iframe-watch", "1");
+        ce.addEventListener("input", schedule);
+        ce.addEventListener("blur", schedule);
+      }
+    }
+
+    // Quill: se esiste istanza, text-change è il migliore
+    const quill =
+      el.__quill ||
+      el.querySelector?.(".ql-editor")?.__quill ||
+      el.querySelector?.(".ql-container")?.__quill;
+
+    if (quill && typeof quill.on === "function") {
+      quill.on("text-change", schedule);
+    }
+  };
+
   // funzione helper per querySelectorAll che scende anche dentro shadow DOM, utile per estrarre testo o trovare editor dinamici in qualsiasi punto del DOM
   function deepQueryAll(root, selector, out = []) {
     out.push(...root.querySelectorAll(selector));
@@ -879,27 +965,6 @@
   // funzione helper per creare un ID sicuro da qualsiasi stringa, utile per generare ID di elementi associati a tag dinamici senza rischiare caratteri non validi
   function _safeId(tag) {
     return (tag || "").toString().replace(/[^a-zA-Z0-9\-_:.]/g, "_");
-  }
-
-  // funzione helper per assicurarsi di avere un tag unico e persistente per ogni editor, con possibilità di definizione manuale tramite attributo o generazione automatica
-  function _ensureTag(el, prefix) {
-    let tag = el.getAttribute("tag");
-    if (tag && tag.trim()) return tag.trim();
-
-    tag = el.getAttribute("data-iframe-auto-tag");
-    if (!tag) {
-      tag = `${prefix}_${++this._autoTagSeq}`;
-      el.setAttribute("data-iframe-auto-tag", tag);
-    }
-    return tag;
-  }
-
-  // funzione helper per fermare il ping ricorsivo, utile in destroy o quando si vuole evitare ulteriori tentativi di comunicazione con l'iframe
-  function _stopPing() {
-    if (this._pingTimer) {
-      clearTimeout(this._pingTimer);
-      this._pingTimer = null;
-    }
   }
 
   global.IframePlugin = IframePlugin;

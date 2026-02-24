@@ -277,7 +277,7 @@ public class AccessibilityService {
             imageBytes = downloadImageFromUrl(request.getUrl());
         }
         // 3. Generazione del testo dall'immagine (da implementare)
-        MultilingualTextResponse generatedText = sintesiService.generateTextFromImageBytes(imageBytes);
+        MultilingualTextResponse generatedText = sintesiService.generateTextFromImageBytes(imageBytes,request.getHint());
 
         return new ImageToTextResponse(generatedText);
 	}

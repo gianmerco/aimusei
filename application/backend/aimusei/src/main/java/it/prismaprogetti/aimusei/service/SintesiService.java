@@ -72,9 +72,9 @@ public class SintesiService {
 		return this.aiServiceActive;
 	}
 
-	public MultilingualTextResponse generateTextFromImageBytes(byte[] imageBytes) {
+	public MultilingualTextResponse generateTextFromImageBytes(byte[] imageBytes, String hint) {
 		ByteArrayImage byteArrayImage= ByteArrayImage.builder().value(imageBytes).build();
-		MultilingualTextResponse response = (MultilingualTextResponse) aiService.sendRequest(TextGenerationRequest.builder().content(byteArrayImage).build());
+		MultilingualTextResponse response = (MultilingualTextResponse) aiService.sendRequest(TextGenerationRequest.builder().content(byteArrayImage).hint(hint).build());
 		
 		return response;
 	}
