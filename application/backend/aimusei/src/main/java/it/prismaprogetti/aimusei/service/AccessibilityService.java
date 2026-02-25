@@ -163,9 +163,14 @@ public class AccessibilityService {
 		}
 		boolean hashMatch = hash.equals(operaByTagOPT.get().getHash());
 		
+		Optional<Opera> operaByHash = operaRepository.findByHash(hash);
+		if (operaByHash.isEmpty()) {
+			return null;
+		}
+		
 		return TextStatusResponse.builder()
 				.hashMatch(hashMatch)
-				.textStatus(operaByTagOPT.get().getStatoOpera())
+				.textStatus(operaByHash.get().getStatoOpera())
 				.build();
 	}
 
