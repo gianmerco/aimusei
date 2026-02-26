@@ -18,7 +18,7 @@
       <module name="aimusei" options="-parameters" />
       <module name="aimusei (1)" options="-parameters" />
       <module name="aiservice" options="-parameters" />
-      <module name="common" options="-parameters" />
+      <module name="common" options="" />
     </option>
   </component>
 </project>

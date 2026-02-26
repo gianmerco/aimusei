@@ -16,6 +16,22 @@ RUN mvn -B -DskipTests -pl aimusei -am clean package
 # ========== RUNTIME ==========
 FROM eclipse-temurin:21-jre
 WORKDIR /app
+
+# Importa certificati S3 (leaf + intermediate CA) nel truststore Java
+COPY s3-cert-0.pem /tmp/s3-cert-0.pem
+COPY s3-cert-1.pem /tmp/s3-cert-1.pem
+RUN keytool -importcert -noprompt -trustcacerts \
+      -alias s3-nord-leaf \
+      -file /tmp/s3-cert-0.pem \
+      -keystore $JAVA_HOME/lib/security/cacerts \
+      -storepass changeit && \
+    keytool -importcert -noprompt -trustcacerts \
+      -alias s3-nord-intermediate \
+      -file /tmp/s3-cert-1.pem \
+      -keystore $JAVA_HOME/lib/security/cacerts \
+      -storepass changeit && \
+    rm /tmp/s3-cert-0.pem /tmp/s3-cert-1.pem
+
 # Copia il JAR "repackaged" dello Spring Boot plugin (non *.original)
 COPY --from=build /workspace/aimusei/target/*[!-original].jar /app/app.jar
 EXPOSE 8090
