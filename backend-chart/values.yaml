@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: aptul9/backend
-  tag: "3.1"
+  tag: "3.2"
   pullPolicy: IfNotPresent
 
 service:
