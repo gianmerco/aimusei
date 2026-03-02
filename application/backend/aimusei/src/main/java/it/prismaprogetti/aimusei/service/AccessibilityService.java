@@ -5,9 +5,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.Optional;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -288,10 +294,27 @@ public class AccessibilityService {
 	}
 	
 	private byte[] downloadImageFromUrl(String urlString) {
-	    try (InputStream in = URI.create(urlString).toURL().openStream()) {
-	        return in.readAllBytes();
+	    try {
+	        TrustManager trustAll = new X509TrustManager() {
+	            @Override public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+	            @Override public void checkClientTrusted(X509Certificate[] c, String a) { }
+	            @Override public void checkServerTrusted(X509Certificate[] c, String a) { }
+	        };
+	        SSLContext sslCtx = SSLContext.getInstance("TLS");
+	        sslCtx.init(null, new TrustManager[]{ trustAll }, null);
+
+	        URL url = URI.create(urlString).toURL();
+	        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+	        conn.setSSLSocketFactory(sslCtx.getSocketFactory());
+	        conn.setHostnameVerifier((h, s) -> true);
+
+	        try (InputStream in = conn.getInputStream()) {
+	            return in.readAllBytes();
+	        }
 	    } catch (IOException e) {
 	        throw new RuntimeException("Failed to download image from URL: " + urlString, e);
+	    } catch (Exception e) {
+	        throw new RuntimeException("SSL setup failed for URL: " + urlString, e);
 	    }
 	}
 }
