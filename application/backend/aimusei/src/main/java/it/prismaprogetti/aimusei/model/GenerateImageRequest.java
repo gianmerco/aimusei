@@ -11,6 +11,5 @@ public class GenerateImageRequest {
 
 	private String tag;
 	private String idMuseo;
-	private Map<String, ImageContent> wordsToPictograms;
 	
 }
