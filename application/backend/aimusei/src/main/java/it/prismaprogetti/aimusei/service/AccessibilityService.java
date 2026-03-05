@@ -288,6 +288,7 @@ public class AccessibilityService {
             imageBytes = downloadImageFromUrl(request.getUrl());
         }
         // 3. Generazione del testo dall'immagine (da implementare)
+        log.info("Generating text from image with hint: {}", request.getHint());
         MultilingualTextResponse generatedText = sintesiService.generateTextFromImageBytes(imageBytes,request.getHint());
 
         return new ImageToTextResponse(generatedText);
@@ -300,6 +301,10 @@ public class AccessibilityService {
 	            @Override public void checkClientTrusted(X509Certificate[] c, String a) { }
 	            @Override public void checkServerTrusted(X509Certificate[] c, String a) { }
 	        };
+	        
+	        
+	        log.info("Downloading image from URL: {}", urlString);
+	        
 	        SSLContext sslCtx = SSLContext.getInstance("TLS");
 	        sslCtx.init(null, new TrustManager[]{ trustAll }, null);
 
@@ -307,7 +312,6 @@ public class AccessibilityService {
 	        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
 	        conn.setSSLSocketFactory(sslCtx.getSocketFactory());
 	        conn.setHostnameVerifier((h, s) -> true);
-
 	        try (InputStream in = conn.getInputStream()) {
 	            return in.readAllBytes();
 	        }
