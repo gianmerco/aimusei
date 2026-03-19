@@ -2,7 +2,6 @@ package it.prismaprogetti.aimusei.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -18,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/public")
 @Slf4j
-@CrossOrigin(origins = "*")
 public class PublicController {
 	
 	@Autowired
