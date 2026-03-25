@@ -279,7 +279,13 @@ public class AccessibilityService {
         if (hasBase64) {
             // Decodifica del Base64
             try {
-                imageBytes = Base64.getDecoder().decode(request.getBase64());
+        	    String base64String = request.getBase64().replaceAll("\\s", ""); // Rimuovere gli spazi
+        	    // Rimuovere eventuale prefisso
+        	    if (base64String.startsWith("data:image/png;base64,"))
+        	        base64String = base64String.substring("data:image/png;base64,".length());
+        	    else if (base64String.startsWith("data:image/jpeg;base64,"))
+        	        base64String = base64String.substring("data:image/jpeg;base64,".length());
+        	    imageBytes = Base64.getDecoder().decode(base64String);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Invalid base64 string", e);
             }
