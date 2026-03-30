@@ -297,6 +297,7 @@ public class AccessibilityService {
         if (hasBase64) {
             // Decodifica del Base64
         	try {
+
         	    String base64String = request.getBase64().replaceAll("\\s", ""); // Rimuovere gli spazi
         	    // Rimuovere eventuale prefisso
         	    if (base64String.startsWith("data:image/png;base64,"))

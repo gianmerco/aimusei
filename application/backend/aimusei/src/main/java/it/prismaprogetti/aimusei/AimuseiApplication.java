@@ -19,15 +19,14 @@ public class AimuseiApplication {
 		SpringApplication.run(AimuseiApplication.class, args);
 	}
 
-
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz.requestMatchers("/**").permitAll())
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors-> cors.disable()); // Disable CORS completely
+            // CORS is handled by GlobalCorsFilter at servlet level
+            .cors(AbstractHttpConfigurer::disable);
         return http.build();
     }
-	
-	
+
 }

@@ -24,6 +24,8 @@ ingresses:
     host: "aimusei.local"
     annotations:
       nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "75"
     paths:
       - path: /aimusei/api/
         pathType: Prefix
@@ -38,7 +40,9 @@ ingresses:
     name: aimusei-ingress-pubblico
     className: "nginx"
     host: "api-coll.museiitaliani.it"
-    annotations: {}
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "75"
     paths:
       - path: /aimusei/api
         pathType: Prefix
