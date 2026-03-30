@@ -9,7 +9,8 @@ import lombok.Data;
 @Data
 public class GenerateImageRequest {
 
-	private String tag;
+	private String json;
 	private String idMuseo;
+	private ImageContent imageContent;
 	
 }

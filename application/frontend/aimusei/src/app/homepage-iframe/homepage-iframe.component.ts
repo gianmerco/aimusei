@@ -49,12 +49,10 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   status: string = '';
   hashCode: string = '';
   context: string = '';
-  canGeneratePdf: boolean = false;
   token: string = '';
   idMuseo: string = '';
 
   disabled: boolean = false;
-  jsonText: any = undefined;
   oldText: string = '';
 
   MOCKED_TYPE = 'EASY_TO_READ';
@@ -92,11 +90,6 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         this.form.get('title')?.setValue(payload.title);
         this.currentTag = payload.tag;
         this.context = payload.context;
-        this.canGeneratePdf = payload.canGeneratePdf;
-        if (this.context == 'INFO_MUSEO')
-          this.jsonText = JSON.parse(this.text);
-        if (this.idMuseo)
-          this.imageExist();
         this.buildTypes();
         for (let t of this.types) {
           this.form.addControl('checkbox_' + t.key, new FormControl(false, []));
@@ -227,44 +220,8 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     }
   }
 
-  generaPdf() {
-    this.accessibilityService
-      .generatePdf(this.currentTag, this.idMuseo)
-      .pipe(takeWhile(() => this.alive))
-      .subscribe((res) => {
-        const newBlob = this.createBlob(res);
-        //@ts-ignore
-        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-          //@ts-ignore
-          window.navigator.msSaveOrOpenBlob(newBlob);
-          return;
-        }
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(newBlob);
-        link.download = 'immagini.pdf';
-        link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-        this.pdfExist = true;
-      });
-  }
-
-  viewPdf() {
-    this.accessibilityService
-      .getImage(this.idMuseo)
-      .pipe(takeWhile(() => this.alive))
-      .subscribe((res) => {
-        window.open(window.URL.createObjectURL(this.createBlob(res)), '_blank');
-      });
-  }
-
-  private createBlob(res: any) {
-    return new Blob([res], { type: 'application/pdf' });
-  }
-
-  private imageExist() {
-    this.accessibilityService
-      .imageExists(this.idMuseo)
-      .pipe(takeWhile(() => this.alive))
-      .subscribe((res) => this.pdfExist = res);
+  formatLabel(type: string) {
+    return type.replace(/\([^)]*\)/g, '').trim();
   }
 
   private search() {
@@ -419,17 +376,17 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   }
 
   private buildTypes() {
-    if (this.context == 'INFO_MUSEO' || this.context == 'ETR') {
+    if (this.context == 'ETR') {
       this.types = [
         {
-          label: 'Testo facilitato (Easy to read)',
+          label: 'Testo semplificato (Easy to read)',
           key: 'EASY_TO_READ',
         }
       ];
     } else {
       this.types = [
         {
-          label: 'Testo facilitato (Easy to read)',
+          label: 'Testo semplificato (Easy to read)',
           key: 'EASY_TO_READ',
         },
         {

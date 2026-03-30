@@ -62,10 +62,13 @@ public class AccessibilityController {
 		return ResponseEntity.ok(response);
 	}
 	
-	//TODO deve arrivare in input anche l'id museo per il salvataggio su s3
 	@PostMapping("/texts/generateImage")
 	public ResponseEntity<byte[]> generateImage(@RequestBody GenerateImageRequest request) {
 		return ResponseEntity.ok(accessibilityService.generateImage(request));
+	}
+	@PostMapping("/texts/generateImageTest")
+	public ResponseEntity<byte[]> generateImageTest(@RequestBody GenerateImageRequest request) {
+		return ResponseEntity.ok(accessibilityService.generateImageTest(request));
 	}
 	
 	@GetMapping("/texts/getImageUrl")

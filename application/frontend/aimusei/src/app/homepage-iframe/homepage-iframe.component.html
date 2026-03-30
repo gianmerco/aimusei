@@ -19,36 +19,13 @@
       </div>
     </div>
     <div class="form-group mx-0 mt-3 p-0">
-      <ng-container *ngIf="context == 'INFO_MUSEO'; else textarea">
-        <!-- <pre [innerHTML]="jsonText | pretty"></pre> -->
-        <div class="table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <td *ngFor="let f of jsonText | keyvalue">
-                  <strong>{{ f.key | humanize }}</strong>
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td *ngFor="let f of jsonText | keyvalue">
-                  {{ f.value | formatValue }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </ng-container>
-      <ng-template #textarea>
-        <textarea
-          formControlName="input"
-          class="form-control custom-scroll"
-          id="input"
-          rows="10"
-          [readonly]="true"
-        ></textarea>
-      </ng-template>
+      <textarea
+        formControlName="input"
+        class="form-control custom-scroll"
+        id="input"
+        rows="10"
+        [readonly]="true"
+      ></textarea>
     </div>
     <div *ngIf="getResults().length > 0">
       <div class="accordion mt-3" id="accordionExample">
@@ -58,8 +35,7 @@
         >
           <ng-container
             *ngIf="
-              (t.key === 'EASY_TO_READ' &&
-                ['ETR', 'INFO_MUSEO'].includes(context)) ||
+              (t.key === 'EASY_TO_READ' && 'ETR' == context) ||
               !context
             "
           >
@@ -75,8 +51,11 @@
                 <div
                   class="d-flex justify-content-between align-items-center w-100 gap-2"
                 >
-                  <div>
-                    {{ t.label }}
+                  <div class="d-flex align-items-center gap-2">
+                    {{ formatLabel(t.label) }}
+                    <a target="_blank" href="https://easy-to-read.inclusion-europe.eu/it/" class="d-flex align-items-center text-decoration-none no-border-on-focus">
+                      <mat-icon style="color: #06c">info</mat-icon>
+                    </a>
                   </div>
                   <div class="pos-relative custom-tooltip-container">
                     <mat-icon
@@ -224,31 +203,6 @@
   </div>
 
   <div class="d-flex justify-content-end align-items-center mt-3 gap-2">
-    <button
-      *ngIf="
-        canGeneratePdf &&
-        pdfExist &&
-        form.get(MOCKED_TYPE)?.value?.length > 0 &&
-        checkValidate(MOCKED_TYPE)
-      "
-      class="btn btn-outline-primary custom-color-hover"
-      [disabled]="disabled"
-      (click)="viewPdf()"
-    >
-      VISUALIZZA PDF
-    </button>
-    <button
-      *ngIf="
-        canGeneratePdf &&
-        form.get(MOCKED_TYPE)?.value?.length > 0 &&
-        checkValidate(MOCKED_TYPE)
-      "
-      class="btn btn-outline-primary custom-color-hover"
-      [disabled]="disabled"
-      (click)="generaPdf()"
-    >
-      GENERA PDF
-    </button>
     <button
       class="btn btn-primary"
       (click)="salva()"

@@ -72,7 +72,7 @@
           : "rossa") +
         ".png";
       let tooltip;
-      if (["INFO_MUSEO", "ETR"].includes(parsedBody.context)) {
+      if ("ETR" == parsedBody.context) {
         tooltip =
           event.data?.status === "ok"
             ? "Easy to read revisionato"
@@ -163,7 +163,6 @@
     setTimeout(() => {
       this.executeIframePluginTextArea();
       this.executeIframePluginDivInput();
-      this.executeIframePluginForm();
     }, 500);
   };
 
@@ -179,44 +178,6 @@
       payload: { text, tag, token: this.token, }
     });
   }
-
-  // estrazione testo dal form
-  IframePlugin.prototype.extractTextForm = function(form, payload, index) {
-    deepQueryAll(form, "input, textarea, select").forEach((input) => {
-      const key = input.name || input.id || `field_${index}`;
-      if (input.type === "checkbox") {
-        if (
-          input.name &&
-          deepQueryAll(form, `input[type="checkbox"][name="${input.name}"]`).length > 1
-        ) {
-          payload[input.name] = Array.from(
-            deepQueryAll(form, `input[type="checkbox"][name="${input.name}"]`)
-          )
-            .filter((el) => el.checked)
-            .map((el) => el.value);
-        } else {
-          payload[key] = input.checked;
-        }
-      } else if (input.type === "radio") {
-        if (input.checked) {
-          payload[key] = input.value;
-        } else if (!(key in payload)) {
-          payload[key] = null;
-        }
-      } else if (input.tagName.toLowerCase() === "select") {
-        if (input.multiple) {
-          payload[key] = Array.from(input.selectedOptions).map(
-            (o) => o.value
-          );
-        } else {
-          payload[key] = input.value;
-        }
-      } else {
-        payload[key] = input.value;
-      }
-    });
-    return payload;
-  } 
 
   // estrazione testo dal div content editable
   IframePlugin.prototype.extractTextAny = function (el) {
@@ -283,7 +244,7 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "btn btn-link";
-      button.title = ["INFO_MUSEO", "ETR"].includes(context) ? 'Easy to read non pronto' : "Apri modale IFrame";
+      button.title = ["ETR"].includes(context) ? 'Easy to read non pronto' : "Apri modale IFrame";
       button.setAttribute("data-bs-target", "#exampleModalAngular");
       button.style.padding = "0";
       button.style.borderRadius = "20%";
@@ -421,103 +382,13 @@
     });
   };
 
-  // scansione del DOM per form con attributo editor=iframe, estrazione testo e inserimento bottone per apertura modale, con gestione stato tramite icona colorata
-  IframePlugin.prototype.executeIframePluginForm = function () {
-    console.log("Observer DOM scanning for form[editor]...");
-
-    const forms = deepQueryAll(document, 'form[editor="iframe"]');
-
-    forms.forEach((form, index) => {
-      const tag = this._ensureTag(form, `AUTO_FM_${index}`);
-      const status = form.getAttribute("text-status") || "NEW";
-      const title = form.getAttribute("data-title");
-
-      // skip duplicates
-      if (form.getAttribute("form-link") != null)
-        return;
-
-      console.log(`Found form [${tag}], attaching pluginIframe button`);
-
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "btn btn-link";
-      button.title = 'Easy to read non pronto';
-      button.style.padding = "0";
-      button.style.borderRadius = "20%";
-      form.setAttribute("form-link", "exampleModalAngular");
-
-      const icon = document.createElement("img");
-      icon.id = this._ICONBTN_ + _safeId(tag);
-      icon.alt = "Icona stato";
-      icon.style.width = "2rem";
-      icon.style.height = "2rem";
-      icon.setAttribute("form-tag", this._ICONBTN_ + _safeId(tag));
-
-      const statusToColor = {
-        NEW: "rossa",
-        "GENERATED-AI": "blu",
-        REVISIONED: "verde",
-        NEW_VERSION: "rossa",
-      };
-
-      const iconColor = statusToColor[status] || "rossa";
-      icon.src = `${this.options.pathIcon}/icona_${iconColor}.png`;
-
-      this.iconBtnMap.set(tag, icon);
-
-      this._attachStatusWatch(form, tag, () => JSON.stringify(this.extractTextForm(form, {}, index)));
-
-      // check status button
-      let payload = this.extractTextForm(form, {}, index);
-      let extractedText = JSON.stringify(payload);
-      this.checkStatus(tag, extractedText);
-
-      button.onclick = () => {
-        window.currentEditor = form;
-        payload = this.extractTextForm(form, {}, index);
-        extractedText = JSON.stringify(payload);
-        console.log("Extracted text for iframe:", extractedText);
-        this.openModal();
-        this.messageToIframe(tag, extractedText, "INFO_MUSEO", title);
-      };
-
-      button.appendChild(icon);
-      let toolbar = null;
-      if (form.tagName.toLowerCase() === "form") {
-        //find input wrapper item closest
-        toolbar = form.querySelector(".toolbar");
-        console.log(`Matched wrapper [${tag}] for Input`, toolbar);
-      }
-      if (toolbar) {
-        // avoid duplicates
-        if (toolbar.querySelector(`#${this._ICONBTN_ + tag}`)) {
-          console.log(`Bottone already exist for TAG: ${tag}`);
-          return;
-        }
-
-        const span = document.createElement("span");
-        span.className = "ql-formats";
-        span.appendChild(button);
-        span.setAttribute("data-btn-iframe", "1");
-
-        toolbar.appendChild(span);
-        console.log(`Added button inside Quill toolbar for TAG: ${tag}`);
-      } else {
-        console.warn(`Nessuna toolbar Quill trovata per TAG: ${tag}`);
-      }
-
-      console.log(`added Iframe link for tag html: ${form.tagName.toLowerCase()} by IFRAME-TAG: ${tag}`);
-    });
-  };
-
-  // aggiunta observer su body per rilevare dinamicamente nuovi editor o form aggiunti dopo il caricamento iniziale, con possibilità di attivazione/disattivazione tramite opzione
+  // aggiunta observer su body per rilevare dinamicamente nuovi editor aggiunti dopo il caricamento iniziale, con possibilità di attivazione/disattivazione tramite opzione
   IframePlugin.prototype.addObserverContentBody = function () {
     let scheduled = false;
     const run = () => {
       scheduled = false;
       this.executeIframePluginTextArea();
       this.executeIframePluginDivInput();
-      this.executeIframePluginForm();
       this.cleanupRemovedEditors();
     };
     this.observer = new MutationObserver(() => {
@@ -562,7 +433,7 @@
     console.log("Cleaning orphaned iframe buttons...");
 
     const existingTags = Array.from(
-      deepQueryAll(document, 'div[editor="iframe"], input[editor="iframe"], textarea[editor="iframe"], form[editor="iframe"]')
+      deepQueryAll(document, 'div[editor="iframe"], input[editor="iframe"], textarea[editor="iframe"]')
     )
       .map((el) => el.getAttribute("tag"))
       .filter(Boolean);
@@ -619,28 +490,6 @@
       modal.classList.remove("show");
       modal.style.display = "none";
     };
-  };
-
-  // inutilizzato
-  IframePlugin.prototype.addNewTextAreaSection = function () {
-    const container = document.querySelector("#dynamic-sections") || document.body;
-    const section = document.createElement("div");
-    section.className = "col-6 mt-4";
-
-    section.innerHTML = `
-      <div class="d-flex align-items-center gap-3">
-        <label for="m-descrizione-sez2" class="font-label-semibold-sm">Descrizione Sezione 2 (Italiano)</label>
-      </div>
-      <textarea rows="5" 
-                class="form-control" 
-                id="m-descrizione-sez2" 
-                tag="MUS1-SEZ2-ITA" 
-                editor="iframe"
-                disabled>
-        Questa è una nuova sezione aggiunta dinamicamente per testare il plugin IFrame.
-      </textarea>
-    `;
-    container.appendChild(section);
   };
 
   // creazione host nel body per uso Shadow DOM
@@ -876,6 +725,14 @@
     this.token = token;
   };
 
+  // funzione helper per cambiare icona a rossa
+  IframePlugin.prototype.changeRedButtonDefault = function (tag) {
+    const iconBtn = this.iconBtnMap.get(tag);
+    if (!iconBtn) return;
+    iconBtn.src = this.options.pathIcon + "/icona_rossa.png";
+    iconBtn.parentElement.title = "Incompleto";
+  }
+
   // funzione helper per assicurarsi di avere un tag unico e persistente per ogni editor, con possibilità di definizione manuale tramite attributo o generazione automatica
   IframePlugin.prototype._ensureTag = function (el, prefix) {
     let tag = el.getAttribute("tag");
@@ -912,26 +769,30 @@
       const prev = this._lastStatusText.get(tag);
       if (text?.trim() === prev?.trim()) return;
       this._lastStatusText.set(tag, text);
-      this.checkStatus(tag, text);
+      if (text.trim().length === 0) {
+        this.changeRedButtonDefault(tag);
+      } else {
+        this.checkStatus(tag, text);
+      }
     };
 
     const t = (el.tagName || "").toLowerCase();
 
     // textarea/input/select
     if (t === "textarea" || t === "input" || t === "select") {
-      el.addEventListener("input", schedule);
+      // el.addEventListener("input", schedule);
       el.addEventListener("change", schedule);
     }
 
     // contenteditable (div editor)
     if (el.isContentEditable) {
-      el.addEventListener("input", schedule);
+      // el.addEventListener("input", schedule);
       el.addEventListener("blur", schedule);
     } else {
       const ce = el.querySelector?.('[contenteditable="true"]');
       if (ce && ce.getAttribute("data-iframe-watch") !== "1") {
         ce.setAttribute("data-iframe-watch", "1");
-        ce.addEventListener("input", schedule);
+        // ce.addEventListener("input", schedule);
         ce.addEventListener("blur", schedule);
       }
     }

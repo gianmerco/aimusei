@@ -76,6 +76,7 @@ public class AccessibilityService {
  * @return
  */
 	public TextGeneratedResponse generateSimplifiedTexts(TextGeneratedRequest request) {
+		request.setContext(TextGeneratedRequest.Context.ETR);
 		String hash = DigestUtils.md5DigestAsHex((request.getTag() + "#" + request.getOriginalText()).getBytes());
 
 		Optional<Opera> operaByTagOPTLatest = operaRepository.findByTag(request.getTag());
@@ -225,21 +226,15 @@ public class AccessibilityService {
 
 	@SneakyThrows
 	public byte[] generateImage(GenerateImageRequest request) {
-		Opera opera = operaRepository.findByTag(request.getTag()).orElseThrow();
-		
-		if(opera.getSintesi()==null) {
-			throw new Exception("Sintesi non trovata per l'opera con tag: " + request.getTag());
-		}
-		if(opera.getStatoOpera()!=StatoOpera.REVISIONATO) {
-			throw new Exception("Opera con tag: " + request.getTag() + " non revisionata, impossibile generare immagine");
-		}
-		String etr=opera.getSintesi().getLatestDescrizione();
+				
+		String etr=sintesiService.createSintesi(request.getJson(),TextGeneratedRequest.Context.INFO_MUSEO).getDescrizioneAI();
 		
 		PictogramsRequest pictogramsRequest = PictogramsRequest.builder()
 		.content(EtrText.builder()
 				.value(etr)
 				.build()
 				)
+		.museumImage(request.getImageContent())
 		.build();
 		
 		ImageResponse imageResponse=((ImageResponse)aiService.sendRequest(pictogramsRequest));
@@ -250,6 +245,29 @@ public class AccessibilityService {
 		
 		return document;
 	}
+	
+	@SneakyThrows
+	public byte[] generateImageTest(GenerateImageRequest request) {
+				
+		String etr=request.getJson();
+		
+		PictogramsRequest pictogramsRequest = PictogramsRequest.builder()
+		.content(EtrText.builder()
+				.value(etr)
+				.build()
+				)
+		.museumImage(request.getImageContent())
+		.build();
+		
+		ImageResponse imageResponse=((ImageResponse)aiService.sendRequest(pictogramsRequest));
+		
+		byte[] document = pdfService.generateDocument(imageResponse.getContent());
+
+		s3Service.saveInBucket(document,request.getIdMuseo());	
+		
+		return document;
+	}
+
 
 	public URL getImageUrl(String idMuseo) {
 		return s3Service.getSignedGetUrl(idMuseo);
@@ -278,11 +296,17 @@ public class AccessibilityService {
         byte[] imageBytes;
         if (hasBase64) {
             // Decodifica del Base64
-            try {
-                imageBytes = Base64.getDecoder().decode(request.getBase64());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid base64 string", e);
-            }
+        	try {
+        	    String base64String = request.getBase64().replaceAll("\\s", ""); // Rimuovere gli spazi
+        	    // Rimuovere eventuale prefisso
+        	    if (base64String.startsWith("data:image/png;base64,"))
+        	        base64String = base64String.substring("data:image/png;base64,".length());
+        	    else if (base64String.startsWith("data:image/jpeg;base64,"))
+        	        base64String = base64String.substring("data:image/jpeg;base64,".length());
+        	    imageBytes = Base64.getDecoder().decode(base64String);
+        	} catch (IllegalArgumentException e) {
+        		throw new IllegalArgumentException("Invalid base64 string", e);
+        	}
         } else {
             // Download dell'immagine dall'URL
             imageBytes = downloadImageFromUrl(request.getUrl());
