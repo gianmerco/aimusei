@@ -10,7 +10,7 @@ replicaCount: 1
 
 image:
   repository: aptul9/frontend
-  tag: "2.9"
+  tag: "2.10"
   pullPolicy: IfNotPresent
 
 service:
