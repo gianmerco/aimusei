@@ -12,7 +12,7 @@ public record AiServiceProperties(
     String uri,
     @DefaultValue("/aiservice/airequest")
     String endpoint,
-    @DefaultValue("120")
+    @DefaultValue("500")
     Long timeoutSeconds,
     @DefaultValue
     K8sProperties k8s
