@@ -54,7 +54,7 @@ public class AiServiceConfiguration {
     WebClient webClient(WebClient.Builder builder, AiServiceProperties props) {
       return builder
     	.exchangeStrategies(ExchangeStrategies.builder()
-    		            .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(20 * 1024 * 1024)) // 20 MB
+    		            .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(200 * 1024 * 1024)) // 20 MB
     		            .build())
          .clientConnector(new ReactorClientHttpConnector(
               HttpClient.create()
