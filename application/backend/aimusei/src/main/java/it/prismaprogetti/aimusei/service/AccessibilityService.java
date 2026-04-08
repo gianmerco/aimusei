@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import com.leonardo.aiservice.AiService;
+import com.leonardo.aiservice.content.ByteArrayImage;
 import com.leonardo.aiservice.content.EtrText;
 import com.leonardo.aiservice.content.StandardText;
 import com.leonardo.aiservice.request.EtrRequest;
@@ -229,12 +230,14 @@ public class AccessibilityService {
 				
 		String etr=sintesiService.createSintesi(request.getJson(),TextGeneratedRequest.Context.INFO_MUSEO).getDescrizioneAI();
 		
+		ByteArrayImage museumImage= ByteArrayImage.builder().value(downloadImageFromUrl(request.getImageUrl())).build();
+		
 		PictogramsRequest pictogramsRequest = PictogramsRequest.builder()
 		.content(EtrText.builder()
 				.value(etr)
 				.build()
 				)
-		.museumImage(request.getImageContent())
+		.museumImage(museumImage)
 		.build();
 		
 		ImageResponse imageResponse=((ImageResponse)aiService.sendRequest(pictogramsRequest));
@@ -251,12 +254,14 @@ public class AccessibilityService {
 				
 		String etr=request.getJson();
 		
+		ByteArrayImage museumImage= ByteArrayImage.builder().value(downloadImageFromUrl(request.getImageUrl())).build();
+		
 		PictogramsRequest pictogramsRequest = PictogramsRequest.builder()
 		.content(EtrText.builder()
 				.value(etr)
 				.build()
 				)
-		.museumImage(request.getImageContent())
+		.museumImage(museumImage)
 		.build();
 		
 		ImageResponse imageResponse=((ImageResponse)aiService.sendRequest(pictogramsRequest));
@@ -297,7 +302,6 @@ public class AccessibilityService {
         if (hasBase64) {
             // Decodifica del Base64
         	try {
-
         	    String base64String = request.getBase64().replaceAll("\\s", ""); // Rimuovere gli spazi
         	    // Rimuovere eventuale prefisso
         	    if (base64String.startsWith("data:image/png;base64,"))
