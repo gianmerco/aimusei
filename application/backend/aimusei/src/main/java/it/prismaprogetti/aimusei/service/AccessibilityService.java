@@ -230,6 +230,10 @@ public class AccessibilityService {
 				
 		String etr=sintesiService.createSintesi(request.getJson(),TextGeneratedRequest.Context.INFO_MUSEO).getDescrizioneAI();
 		
+		log.info("etr PRE-strip processing{}", etr);
+		etr=etr.replaceAll("\\h+", " ").replaceAll("(?m)^\\h+|\\h+$", "");
+		log.info("etr POST-strip processing{}", etr);
+		
 		ByteArrayImage museumImage= ByteArrayImage.builder().value(downloadImageFromUrl(request.getImageUrl())).build();
 		
 		PictogramsRequest pictogramsRequest = PictogramsRequest.builder()
@@ -253,6 +257,9 @@ public class AccessibilityService {
 	public byte[] generateImageTest(GenerateImageRequest request) {
 				
 		String etr=request.getJson();
+		log.info("etr PRE-strip processing{}", etr);
+		etr=etr.replaceAll("\\h+", " ").replaceAll("(?m)^\\h+|\\h+$", "");
+		log.info("etr POST-strip processing{}", etr);
 		
 		ByteArrayImage museumImage= ByteArrayImage.builder().value(downloadImageFromUrl(request.getImageUrl())).build();
 		
