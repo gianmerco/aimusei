@@ -1,6 +1,7 @@
 package it.prismaprogetti.aimusei.config;
 
 import java.io.IOException;
+import java.util.Set;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -24,6 +25,15 @@ import jakarta.servlet.http.HttpServletResponse;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalCorsFilter implements Filter {
 
+    private static final Set<String> ALLOWED_ORIGINS = Set.of(
+        "https://akamaicdn.museiitaliani.it",
+        "https://portale.museiitaliani.it",
+        "https://portale-coll.museiitaliani.it",
+        "https://smn-coll.museiitaliani.it",
+        "https://museiitaliani.it",
+        "https://sistemamusealenazionale.beniculturali.it"
+    );
+
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
@@ -33,7 +43,7 @@ public class GlobalCorsFilter implements Filter {
 
         String origin = request.getHeader("Origin");
 
-        if (origin != null && !origin.isEmpty()) {
+        if (origin != null && ALLOWED_ORIGINS.contains(origin)) {
             response.setHeader("Access-Control-Allow-Origin", origin);
             response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
             response.setHeader("Access-Control-Allow-Headers", "*");
