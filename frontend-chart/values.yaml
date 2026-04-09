@@ -9,7 +9,7 @@ names:
 replicaCount: 1
 
 image:
-  repository: aptul9/frontend
+  repository: dfortunio/frontend
   tag: "2.10"
   pullPolicy: IfNotPresent
 
