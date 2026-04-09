@@ -45,6 +45,11 @@ config:
     K8S_CLIENT_SERVICE_ACCOUNT_NAME: "aimusei-sa"
     K8S_CLIENT_NAMESPACE: "aimusei"
 
+hostAliases:
+  - ip: "95.100.171.215"
+    hostnames:
+      - "akamaicdn.museiitaliani.it"
+
 serviceAccount:
   create: true
   name: "aimusei-sa"

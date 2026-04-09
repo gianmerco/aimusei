@@ -15,6 +15,14 @@ spec:
         app: {{ .Values.nameBase }}-backend
     spec:
       serviceAccountName: {{ include "chart.serviceAccountName" . }}
+      hostAliases:
+        {{- range .Values.hostAliases }}
+        - ip: {{ .ip }}
+          hostnames:
+            {{- range .hostnames }}
+            - {{ . }}
+            {{- end }}
+        {{- end }}
       containers:
           - name: be
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
