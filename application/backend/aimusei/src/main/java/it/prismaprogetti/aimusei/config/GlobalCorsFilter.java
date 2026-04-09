@@ -31,7 +31,10 @@ public class GlobalCorsFilter implements Filter {
         "https://portale-coll.museiitaliani.it",
         "https://smn-coll.museiitaliani.it",
         "https://museiitaliani.it",
-        "https://sistemamusealenazionale.beniculturali.it"
+        "https://sistemamusealenazionale.beniculturali.it",
+        "http://localhost:8000",
+        "http://localhost:3000",
+        "http://localhost:4200"
     );
 
     @Override
