@@ -32,6 +32,7 @@ public class GlobalCorsFilter implements Filter {
         "https://smn-coll.museiitaliani.it",
         "https://museiitaliani.it",
         "https://sistemamusealenazionale.beniculturali.it",
+        "http://localhost:5173",
         "http://localhost:8000",
         "http://localhost:8080",
         "http://localhost:3000",
@@ -47,7 +48,10 @@ public class GlobalCorsFilter implements Filter {
 
         String origin = request.getHeader("Origin");
 
-        if (origin != null && ALLOWED_ORIGINS.contains(origin)) {
+        boolean isAllowed = origin != null &&
+            (ALLOWED_ORIGINS.contains(origin) || origin.startsWith("http://localhost:"));
+
+        if (isAllowed) {
             response.setHeader("Access-Control-Allow-Origin", origin);
             response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
             response.setHeader("Access-Control-Allow-Headers", "*");

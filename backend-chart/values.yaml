@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: dfortunio/backend
-  tag: "3.5.8"
+  tag: "3.5.9"
   pullPolicy: IfNotPresent
 
 service:
