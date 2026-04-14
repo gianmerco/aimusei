@@ -9,8 +9,8 @@ names:
 replicaCount: 1
 
 image:
-  repository: dfortunio/frontend
-  tag: "2.10"
+  repository: vincenzopapalia/frontend
+  tag: "2.11"
   pullPolicy: IfNotPresent
 
 service:
