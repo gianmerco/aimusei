@@ -36,28 +36,30 @@ public class PublicService {
 		List<TextHashedResponse> results = new ArrayList<TextHashedResponse>();
 		for (TagHashRequest tagHashRequest : list) {
 			
-			Opera opera = null;
+			Opera operaByTagLatest = null;
 			Status status = null;
 			try {
 				
 				
 				Optional<Opera> operaByTagOpt = operaRepository.findByTag(tagHashRequest.getTag());
 				if (operaByTagOpt.isPresent()) {
-					opera = operaByTagOpt.get();
+					operaByTagLatest = operaByTagOpt.get();
 					
-					if (tagHashRequest.getHash().equals(opera.getHash())) {
+					if (tagHashRequest.getHash().equals(operaByTagLatest.getHash())) {
 						status = Status.OK;
+						ok++;
 					} else {
 						//casistica di caso richiesta hash di versione precedente
 						Optional<Opera> operaByHashOpt= operaRepository.findByHash(tagHashRequest.getHash());
 						if(operaByHashOpt.isPresent()&&operaByHashOpt.get().getTag().equals(tagHashRequest.getTag())) {
 							status = Status.OK;
-							opera=operaByHashOpt.get();
+							operaByTagLatest=operaByHashOpt.get();
+							ok++;
 						}
 						else {
 							status = Status.MISMATCH;
+							failed++;
 						}
-					ok++;
 				}
 			} else {
 					status = Status.NOT_FOUND;
@@ -72,12 +74,12 @@ public class PublicService {
 			results.add(	
 				TextHashedResponse.builder()
 				.tag(tagHashRequest.getTag())
-				.hash(opera!=null?opera.getHash():null)
-				.validator(opera!=null?opera.getValidator():null)
+				.hash(operaByTagLatest!=null?operaByTagLatest.getHash():null)
+				.validator(operaByTagLatest!=null?operaByTagLatest.getValidator():null)
 				.status(status)
-				.version(opera!=null?opera.getVersion():null)
-				.textGeneratedAI(opera!=null?getTextByTipoSemplificato(opera, false):null)
-				.textRevisioned(opera!=null?getTextByTipoSemplificato(opera, true):null)
+				.version(operaByTagLatest!=null?operaByTagLatest.getVersion():null)
+				.textGeneratedAI(operaByTagLatest!=null?getTextByTipoSemplificato(operaByTagLatest, false):null)
+				.textRevisioned(operaByTagLatest!=null?getTextByTipoSemplificato(operaByTagLatest, true):null)
 				.build()
 				);
 			}

@@ -17,7 +17,7 @@ public class TextHashedResponse {
 	private Status status; // OK, MISMATCH, NOT_FOUND, ERROR
 	private String textGeneratedAI;
 	private String textRevisioned;
-	private int version;
+	private Integer version;
 	
 	
 	public enum Status {

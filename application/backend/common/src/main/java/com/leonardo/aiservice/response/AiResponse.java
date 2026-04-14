@@ -12,7 +12,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = TextResponse.class, name = "text"),
     @JsonSubTypes.Type(value = ImageResponse.class, name = "image"),
-    @JsonSubTypes.Type(value = MultilingualTextResponse.class, name = "multilingual")
+    @JsonSubTypes.Type(value = MultilingualTextResponse.class, name = "multilingual"),
+    @JsonSubTypes.Type(value = BatchTextResponse.class, name = "batchText")
 })
 public interface AiResponse {
 

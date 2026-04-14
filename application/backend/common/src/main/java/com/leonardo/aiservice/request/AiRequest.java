@@ -13,7 +13,8 @@ import com.leonardo.aiservice.content.Content;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = EtrRequest.class, name = "etr"),
     @JsonSubTypes.Type(value = PictogramsRequest.class, name = "pictograms"),
-    @JsonSubTypes.Type(value = TextGenerationRequest.class, name = "textGeneration")
+    @JsonSubTypes.Type(value = TextGenerationRequest.class, name = "textGeneration"),
+    @JsonSubTypes.Type(value = EtrMassiveRequest.class, name = "etrMassive")
 })
 public interface AiRequest {
     // ...
