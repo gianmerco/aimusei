@@ -4,8 +4,8 @@ nameBase: "aimusei"
 replicaCount: 1
 
 image:
-  repository: dfortunio/backend
-  tag: "3.5.9"
+  repository: vincenzopapalia/backend
+  tag: "3.5.10"
   pullPolicy: IfNotPresent
 
 service:
