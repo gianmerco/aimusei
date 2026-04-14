@@ -10,9 +10,16 @@ import org.springframework.stereotype.Service;
 
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.events.Event;
+import com.itextpdf.kernel.events.IEventHandler;
+import com.itextpdf.kernel.events.PdfDocumentEvent;
 import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.AreaBreak;
 import com.itextpdf.layout.element.Cell;
@@ -21,6 +28,7 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.properties.VerticalAlignment;
 import com.leonardo.aiservice.content.Base64Image;
 import com.leonardo.aiservice.content.ByteArrayImage;
 import com.leonardo.aiservice.content.ImageContent;
@@ -36,6 +44,8 @@ public class PDFService {
 
 			PdfWriter writer = new PdfWriter(baos);
 			PdfDocument pdfDoc = new PdfDocument(writer);
+			pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE,
+					new FirstPageHeaderHandler("Testo generato con linee guida ARASAAC"));
 			Document document = new Document(pdfDoc);
 			pdfDoc.setDefaultPageSize(PageSize.A4);
 
@@ -211,4 +221,38 @@ public class PDFService {
 		return cell;
 	}
 
+	private static class FirstPageHeaderHandler implements IEventHandler {
+		private final String headerText;
+
+		public FirstPageHeaderHandler(String headerText) {
+			this.headerText = headerText;
+		}
+
+		@Override
+		public void handleEvent(Event event) {
+			PdfDocumentEvent docEvent = (PdfDocumentEvent) event;
+			PdfDocument pdfDoc = docEvent.getDocument();
+			PdfPage page = docEvent.getPage();
+
+			// Applica solo alla prima pagina
+			if (pdfDoc.getPageNumber(page) != 1) {
+				return;
+			}
+
+			Rectangle pageSize = page.getPageSize();
+			PdfCanvas pdfCanvas = new PdfCanvas(page.newContentStreamBefore(), page.getResources(), pdfDoc);
+
+			// Crea un canvas per il layout (usa le coordinate assolute)
+			try (Canvas canvas = new Canvas(pdfCanvas, pageSize)) {
+				Paragraph header = new Paragraph(headerText).setFontSize(7)
+						.setFontColor(com.itextpdf.kernel.colors.ColorConstants.BLACK);
+
+				// Posiziona in alto al centro
+				canvas.showTextAligned(header, pageSize.getWidth() / 2, // x = centro orizzontale
+						pageSize.getTop() - 15, // y = 30 punti dal bordo superiore
+						TextAlignment.CENTER, VerticalAlignment.TOP);
+			}
+		}
+
+	}
 }

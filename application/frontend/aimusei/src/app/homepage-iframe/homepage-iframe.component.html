@@ -34,10 +34,7 @@
           *ngFor="let t of getResults(); let i = index"
         >
           <ng-container
-            *ngIf="
-              (t.key === 'EASY_TO_READ' && 'ETR' == context) ||
-              !context
-            "
+            *ngIf="(t.key === 'EASY_TO_READ' && 'ETR' == context) || !context"
           >
             <h2 class="accordion-header">
               <button
@@ -53,7 +50,11 @@
                 >
                   <div class="d-flex align-items-center gap-2">
                     {{ formatLabel(t.label) }}
-                    <a target="_blank" href="https://easy-to-read.inclusion-europe.eu/it/" class="d-flex align-items-center text-decoration-none no-border-on-focus">
+                    <a
+                      target="_blank"
+                      href="https://easy-to-read.inclusion-europe.eu/it/"
+                      class="d-flex align-items-center text-decoration-none no-border-on-focus"
+                    >
                       <mat-icon style="color: #06c">info</mat-icon>
                     </a>
                   </div>
@@ -87,6 +88,7 @@
                     >
                       <div class="fit-content">
                         Editor:
+                        <!--Strumento di generazione dei contenuti accessibili-->
                         {{ editors[t.key] ? editors[t.key] : "Semplificato" }}
                       </div>
                       <div class="fit-content">

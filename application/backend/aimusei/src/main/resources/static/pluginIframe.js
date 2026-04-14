@@ -71,22 +71,12 @@
           ? "blu"
           : "rossa") +
         ".png";
-      let tooltip;
-      if ("ETR" == parsedBody.context) {
-        tooltip =
-          event.data?.status === "ok"
-            ? "Easy to read revisionato"
-            : event.data?.status === "ai"
-            ? "Easy to read pronto"
-            : "Easy to read incompleto";
-      } else {
-        tooltip =
-          event.data?.status === "ok"
-            ? "Revisionato"
-            : event.data?.status === "ai"
-            ? "Semplificato"
-            : "Incompleto";
-      }
+      let tooltip =
+        event.data?.status === "ok"
+          ? "Revisionato"
+          : event.data?.status === "ai"
+          ? "Semplificato"
+          : "Incompleto";
       iconBtn.parentElement.title = tooltip;
     };
 

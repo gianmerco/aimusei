@@ -1,5 +1,6 @@
 package it.prismaprogetti.aimusei.controller;
 
+import java.io.IOException;
 import java.net.URL;
 
 import org.springframework.beans.factory.annotation.Autowired;
