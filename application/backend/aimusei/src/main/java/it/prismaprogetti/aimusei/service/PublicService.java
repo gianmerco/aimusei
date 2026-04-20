@@ -93,10 +93,13 @@ public class PublicService {
 		return new MassiveTextsResponse(results,meta);
 	}
 	
-	private String getTextByTipoSemplificato(Opera opera,boolean revisioned) {
+	private String getTextByTipoSemplificato(Opera opera, boolean revisioned) {
 		Sintesi sintesi = opera.getSintesi();
+		if (sintesi == null) {
+			return null;
+		}
 		return revisioned ? sintesi.getDescrizioneReviewed() : sintesi.getDescrizioneAI();
-		
+
 	}
 
 }

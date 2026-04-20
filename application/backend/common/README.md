@@ -1,12 +1,84 @@
 # Libreria commons
-Questa libreria contiene le classi DTO utilizzate dalla libreria per interagire con il back-end dell'AI gateway.
+Questa libreria contiene le classi DTO utilizzate per interagire con il back-end dell'AI gateway.
+
+## Architettura
+
+La libreria è organizzata in tre package principali:
+- `com.leonardo.aiservice.request` - Richieste verso l'AI gateway
+- `com.leonardo.aiservice.response` - Risposte dall'AI gateway
+- `com.leonardo.aiservice.content` - Tipi di contenuto utilizzati da richieste e risposte
+
+Tutte le classi utilizzano Lombok per la generazione automatica di builder, getter, equals/hashCode e toString. La serializzazione JSON è gestita tramite Jackson con supporto al polimorfismo.
 
 ## Richieste
-Le richieste sono modellate tramite la classe astratta AbstractRequest, che contiene semplicemente un campo per l'input testuale da convertire e il metodo get. Questa classe è concretamente instanziata da AIRequest, che estende la classe madre con una lista di contesti, che rappresentano le disabilità rispetto le quali l'input testuale va convertito dalla LLM. Ad esempio un'AIRequest potrebbe contenere come input "Sempre caro mi fu quest'ermo colle" e come contesti \[DISLESSIA, ADHD, CAA\]. All'interno della classe AIRequest è definita una classe interna builder da utilizzare per la costruzione dell'oggetto AIRequest, che segue il noto pattern.
 
-## Contesti
-La classe enum Context rappresenta le modalità secondo cui il testo di una richiesta va convertito. In pratica, queste modalità coincidono con i tipi di disabilità definiti in fase di analisi, e sono: dislessia (DISLESSIA), discalculia (DISCALCULIA), ADHD (ADHD), easy to read (EASY_TO_READ) e CCA (CCA). 
+Le richieste sono modellate tramite l'interfaccia `AiRequest`, che definisce il metodo `getContent()` per ottenere il contenuto della richiesta. Esistono tre implementazioni concrete:
+
+### EtrRequest
+Richiesta per semplificare un testo secondo le linee guida Easy-to-Read. Contiene un `TextContent` come input.
+
+### PictogramsRequest
+Richiesta per convertire un testo in pittogrammi ARASAAC. Contiene:
+- `content`: il testo da convertire (`TextContent`)
+- `wordsToPictograms`: una mappa di parole già associate ai rispettivi pittogrammi (`Map<String, ImageContent>`)
+
+Si consiglia di utilizzare testo già semplificato (EtrText) per ottenere risultati migliori.
+
+### TextGenerationRequest
+Richiesta per generare una descrizione testuale a partire da un'immagine. Contiene:
+- `content`: l'immagine da descrivere (`ImageContent`)
+- `hint`: informazioni aggiuntive sull'immagine (es. nome dell'opera, museo) per migliorare la descrizione generata
 
 ## Risposte
-Una generica risposta è modellata dalla classe astratta AbstractResponse. Questa contiene una mappa che associa a un oggetto Context (chiave) un oggetto della classe generica Output<?> (valore). In questo modo, data una AIRequest, con un input e vari contesti, si avrà un unico oggetto in risposta, che contiene per ogni contesto l'output associato.      AbstractResponse ha come classe concreta AIResponse; usa anch'essa il pattern Builder per la creazione.       
-Infine, la classe Output è una classe record che incapsula l'effettivo output da associare a ciascuna modalità. E' generica perché questo output ha tipo diverso a seconda del contesto a cui si riferisce (es. per CAA, l'output è una lista di immagini, qui modellate come delle stringe base64; per le altre è una stringa).
+
+Le risposte sono modellate tramite l'interfaccia `AiResponse`, che definisce il metodo `getContent()`. Esistono tre implementazioni concrete:
+
+### TextResponse
+Risposta contenente un singolo contenuto testuale (`TextContent`).
+
+### ImageResponse
+Risposta contenente una o più immagini (`ImageMapContent`). Utilizzata come risposta a `PictogramsRequest`.
+
+### MultilingualTextResponse
+Risposta contenente testo in più lingue (`MultilingualTextContent`).
+
+## Contenuti
+
+L'interfaccia `Content` rappresenta un generico tipo di contenuto. Le implementazioni sono organizzate gerarchicamente:
+
+### TextContent (astratto)
+Rappresenta un contenuto testuale con un campo `value` di tipo String. Sottotipi:
+- **StandardText**: testo standard, ad esempio una sezione di un sito web
+- **EtrText**: testo semplificato secondo le normative Easy-to-Read
+- **JsonText**: testo formattato come JSON
+
+### ImageContent (interfaccia)
+Rappresenta un'immagine. Implementazioni:
+- **Base64Image**: immagine codificata in base64 (campo `value` di tipo String)
+- **ByteArrayImage**: immagine come array di byte (campo `value` di tipo byte[])
+
+### MultilingualTextContent
+Mappa che associa un codice lingua ISO 639-1 al corrispondente `TextContent`. Fornisce il metodo `ofLanguage(String lang)` per ottenere il testo in una specifica lingua.
+
+### ImageMapContent
+Lista di coppie parola-immagine (`List<Map.Entry<String, ImageContent>>`). Utilizzato per rappresentare il risultato di una richiesta di pittogrammi, mantenendo l'ordine delle parole nel testo originale e permettendo duplicati.
+
+## Utilizzo
+
+Tutte le classi concrete utilizzano il pattern Builder per la costruzione:
+
+```java
+// Creazione di una richiesta Easy-to-Read
+EtrRequest request = EtrRequest.builder()
+    .content(StandardText.builder()
+        .value("Testo da semplificare")
+        .build())
+    .build();
+
+// Creazione di una risposta testuale
+TextResponse response = TextResponse.builder()
+    .content(EtrText.builder()
+        .value("Testo semplificato")
+        .build())
+    .build();
+```

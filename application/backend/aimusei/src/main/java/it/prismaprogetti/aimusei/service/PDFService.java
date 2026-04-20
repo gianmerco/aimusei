@@ -1,10 +1,19 @@
 package it.prismaprogetti.aimusei.service;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 
 import org.springframework.stereotype.Service;
 
@@ -18,6 +27,7 @@ import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.WriterProperties;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.Document;
@@ -42,7 +52,13 @@ public class PDFService {
 
 			List<Map.Entry<String, ImageContent>> entries = content.getValue();
 
-			PdfWriter writer = new PdfWriter(baos);
+			  WriterProperties writerProperties = new WriterProperties()
+		                .setFullCompressionMode(true)
+		                .setCompressionLevel(6)
+		                .useSmartMode();
+			  
+			  
+			PdfWriter writer = new PdfWriter(baos,writerProperties);
 			PdfDocument pdfDoc = new PdfDocument(writer);
 			pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE,
 					new FirstPageHeaderHandler("Testo generato con linee guida ARASAAC"));
@@ -118,6 +134,7 @@ public class PDFService {
 			}
 
 			addLicensePage(document);
+			
 			document.close();
 			return baos.toByteArray();
 
@@ -146,59 +163,99 @@ public class PDFService {
 	}
 
 	private void addImageToTable(Table table, String key, ImageContent imageContent, float cellWidth,
-			float cellHeight) {
-		try {
-			ImageData imageData = extractImageData(imageContent);
+	        float cellHeight) {
+	    try {
+	        // ✅ Ridimensiona i byte PRIMA di creare ImageData
+	        byte[] resizedBytes = resizeImage(imageContent, (int) cellWidth, (int) (cellHeight - 15f));
 
-			Image image = new Image(imageData);
+	        ImageData imageData = ImageDataFactory.create(resizedBytes);
+	        Image image = new Image(imageData);
 
-			// Dimensioni originali dell'immagine (in punti, assumendo 1 pixel = 1 punto)
-			float originalWidth = image.getImageWidth();
-			float originalHeight = image.getImageHeight();
+	        image.scaleToFit(cellWidth, cellHeight - 15f);
 
-			// Altezza riservata per la didascalia (testo)
-			float textHeight = 15f; // sufficiente per una riga con font 10
-			float availableImageHeight = cellHeight - textHeight;
+	        Paragraph imageParagraph = new Paragraph();
+	        imageParagraph.add(image);
+	        imageParagraph.setTextAlignment(TextAlignment.CENTER);
+	        imageParagraph.setMargin(0);
+	        imageParagraph.setPadding(0);
 
-			// Calcola il fattore di scala per adattare l'immagine allo spazio disponibile
-			float scale = Math.min(cellWidth / originalWidth, availableImageHeight / originalHeight);
-			float newWidth = originalWidth * scale;
-			float newHeight = originalHeight * scale;
+	        Paragraph caption = new Paragraph(key)
+	                .setFontSize(10)
+	                .setTextAlignment(TextAlignment.CENTER)
+	                .setMargin(0)
+	                .setPadding(0);
 
-			// Applica le nuove dimensioni
-			image.setWidth(newWidth);
-			image.setHeight(newHeight);
+	        Cell cell = new Cell();
+	        cell.setWidth(cellWidth);
+	        cell.setHeight(cellHeight);
+	        cell.setPadding(0);
+	        cell.setMargin(0);
+	        cell.setBorder(null);
 
-			// Crea un paragrafo per centrare l'immagine orizzontalmente
-			Paragraph imageParagraph = new Paragraph();
-			imageParagraph.add(image);
-			imageParagraph.setTextAlignment(TextAlignment.CENTER);
-			imageParagraph.setMargin(0);
-			imageParagraph.setPadding(0);
+	        cell.add(imageParagraph);
+	        cell.add(caption);
+	        table.addCell(cell);
 
-			// Crea la didascalia con la chiave
-			Paragraph caption = new Paragraph(key).setFontSize(10).setTextAlignment(TextAlignment.CENTER).setMargin(0)
-					.setPadding(0);
+	    } catch (Exception e) {
+	        table.addCell(createEmptyCell(cellWidth, cellHeight));
+	    }
+	}
 
-			// Crea la cella con le dimensioni fisse
-			Cell cell = new Cell();
-			cell.setWidth(cellWidth);
-			cell.setHeight(cellHeight);
-			cell.setPadding(0);
-			cell.setMargin(0);
-			cell.setBorder(null);
+	/**
+	 * Ridimensiona l'immagine in memoria prima di inserirla nel PDF.
+	 * maxWidth e maxHeight sono in punti PDF (1 punto ≈ 0.352 mm).
+	 * Moltiplichiamo per un factor per avere abbastanza risoluzione ma non troppa.
+	 */
+	private byte[] resizeImage(ImageContent imageContent, int maxWidthPt, int maxHeightPt) throws Exception {
+	    // ✅ Estrai i byte grezzi direttamente dall'ImageContent
+	    byte[] originalBytes;
+	    if (imageContent instanceof ByteArrayImage bai) {
+	        originalBytes = bai.getValue();
+	    } else if (imageContent instanceof Base64Image b64i) {
+	        originalBytes = Base64.getDecoder().decode(b64i.getValue());
+	    } else {
+	        throw new IllegalArgumentException("Tipo di immagine non supportato: " + imageContent.getClass().getName());
+	    }
 
-			// Aggiunge prima l'immagine centrata, poi la didascalia
-			cell.add(imageParagraph);
-			cell.add(caption);
+	    ByteArrayInputStream bais = new ByteArrayInputStream(originalBytes);
+	    BufferedImage original = ImageIO.read(bais);
 
-			table.addCell(cell);
+	    if (original == null) return originalBytes; // fallback
 
-		} catch (Exception e) {
-			// In caso di errore, cella vuota
-			Cell emptyCell = createEmptyCell(cellWidth, cellHeight);
-			table.addCell(emptyCell);
-		}
+	    float dpi = 150f;
+	    int maxWidthPx  = (int) (maxWidthPt  / 72f * dpi);
+	    int maxHeightPx = (int) (maxHeightPt / 72f * dpi);
+
+	    int origW = original.getWidth();
+	    int origH = original.getHeight();
+
+	    // Se l'immagine è già abbastanza piccola, non ridimensionare
+	    if (origW <= maxWidthPx && origH <= maxHeightPx) {
+	        return originalBytes;
+	    }
+
+	    float scale = Math.min((float) maxWidthPx / origW, (float) maxHeightPx / origH);
+	    int newW = Math.max(1, (int) (origW * scale));
+	    int newH = Math.max(1, (int) (origH * scale));
+
+	    BufferedImage resized = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_RGB);
+	    Graphics2D g2d = resized.createGraphics();
+	    g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+	    g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+	    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	    g2d.drawImage(original, 0, 0, newW, newH, null);
+	    g2d.dispose();
+
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	    ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
+	    ImageWriteParam param = writer.getDefaultWriteParam();
+	    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+	    param.setCompressionQuality(0.85f);
+	    writer.setOutput(ImageIO.createImageOutputStream(baos));
+	    writer.write(null, new IIOImage(resized, null, null), param);
+	    writer.dispose();
+
+	    return baos.toByteArray();
 	}
 
 	private ImageData extractImageData(ImageContent imageContent) {
@@ -220,6 +277,9 @@ public class PDFService {
 		cell.setBorder(null);
 		return cell;
 	}
+	
+	
+	
 
 	private static class FirstPageHeaderHandler implements IEventHandler {
 		private final String headerText;

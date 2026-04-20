@@ -3,22 +3,20 @@ package com.leonardo.aiservice.response;
 import com.leonardo.aiservice.content.BatchTextContent;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
- * risposta contenente più testi processati in batch, ciascuno identificato dallo stesso ID usato nella richiesta corrispondente
+ * risposta contenente lo stato di un batch e, se completato e ultimo della serie, il contenuto testuale risultante.
  */
 
-@Builder
-@ToString
-@EqualsAndHashCode
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@SuperBuilder
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
-public class BatchTextResponse implements AiResponse {
+public class BatchTextResponse extends BatchResponse {
     private final BatchTextContent content;
 
     @Override
