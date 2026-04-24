@@ -20,10 +20,12 @@
 
     this.createShadowHost();
     this.injectCss();
-    this.createIframe();
-    this.initPostMessageChannel();
-    this.addObserverContentBody();
-    this.listenMessages();
+    setTimeout(() => {
+      this.createIframe();
+      this.initPostMessageChannel();
+      this.addObserverContentBody();
+      this.listenMessages();
+    }, 3000);
   }
 
   // listener globale su evento chiusura modale
