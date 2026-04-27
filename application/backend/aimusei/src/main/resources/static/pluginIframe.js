@@ -5,6 +5,7 @@
         pathIcon: "https://api-coll.museiitaliani.it/aimusei/api",
         urlIframe: "https://api-coll.museiitaliani.it/aimusei/",
         observerDom: false,
+        autoCheckStatus: true,  // ← abilita/disabilita auto-refresh
         token: '',
         idMuseo: ''
       },
@@ -264,7 +265,9 @@
       this._attachStatusWatch(textarea, tag, () => this.extractTextAny(textarea));
 
       // check status button
-      this.checkStatus(tag, this.extractTextAny(textarea));
+      if (this.options.autoCheckStatus) {
+        this.checkStatus(tag, this.extractTextAny(textarea));
+      }
 
       button.onclick = () => {
         window.currentTextArea = textarea;
@@ -328,7 +331,9 @@
 
       // check status button
       let extractedText = this.extractTextAny(editor);
-      this.checkStatus(tag, extractedText);
+      if (this.options.autoCheckStatus) {
+        this.checkStatus(tag, extractedText);
+      }
 
       button.onclick = () => {
         window.currentEditor = editor;
@@ -750,7 +755,7 @@
   // funzione helper per attaccare listener di input/change su un elemento o suoi contenteditable figli, con debounce e callback per estrazione testo, utile per aggiornare lo stato del bottone in base al contenuto dell'editor
   IframePlugin.prototype._attachStatusWatch = function (el, tag, getTextFn) {
     if (!el || !tag) return;
-
+    
     // evita doppi bind
     if (el.getAttribute("data-iframe-watch") === "1") return;
     el.setAttribute("data-iframe-watch", "1");
@@ -763,41 +768,42 @@
       this._lastStatusText.set(tag, text);
       if (text.trim().length === 0) {
         this.changeRedButtonDefault(tag);
-      } else {
+      } else if (this.options.autoCheckStatus) {
         this.checkStatus(tag, text);
       }
     };
 
     const t = (el.tagName || "").toLowerCase();
-
-    // textarea/input/select
     if (t === "textarea" || t === "input" || t === "select") {
-      // el.addEventListener("input", schedule);
       el.addEventListener("change", schedule);
     }
-
-    // contenteditable (div editor)
     if (el.isContentEditable) {
-      // el.addEventListener("input", schedule);
       el.addEventListener("blur", schedule);
     } else {
       const ce = el.querySelector?.('[contenteditable="true"]');
       if (ce && ce.getAttribute("data-iframe-watch") !== "1") {
         ce.setAttribute("data-iframe-watch", "1");
-        // ce.addEventListener("input", schedule);
         ce.addEventListener("blur", schedule);
       }
     }
-
-    // Quill: se esiste istanza, text-change è il migliore
-    const quill =
-      el.__quill ||
-      el.querySelector?.(".ql-editor")?.__quill ||
-      el.querySelector?.(".ql-container")?.__quill;
-
+    const quill = el.__quill || el.querySelector?.(".ql-editor")?.__quill || el.querySelector?.(".ql-container")?.__quill;
     if (quill && typeof quill.on === "function") {
       quill.on("text-change", schedule);
     }
+  };
+
+  // funzione helper per forzare refresh di tutti i bottoni in base al testo attuale degli editor/textarea
+  IframePlugin.prototype.refreshAllTags = function () {
+    const selector = 'textarea[editor="iframe"], div[editor="iframe"], input[editor="iframe"]';
+  
+    deepQueryAll(document, selector).forEach((el) => {
+      const tag = el.getAttribute("tag") || el.getAttribute("data-iframe-auto-tag");
+    
+      if (!el.getAttribute("textarea-link") || !tag) return;
+    
+      console.log(`Refreshing in DOM element with tag=[${tag}]`);
+      this.checkStatus(tag, this.extractTextAny(el));
+    });
   };
 
   // funzione helper per querySelectorAll che scende anche dentro shadow DOM, utile per estrarre testo o trovare editor dinamici in qualsiasi punto del DOM
