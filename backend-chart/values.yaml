@@ -4,8 +4,8 @@ nameBase: "aimusei"
 replicaCount: 1
 
 image:
-  repository: aptul9/backend
-  tag: "3.5.11"
+  repository: vincenzopapalia/backend
+  tag: "3.5.14"
   pullPolicy: IfNotPresent
 
 service:
