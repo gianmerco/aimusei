@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: vincenzopapalia/backend
-  tag: "3.5.14"
+  tag: "3.5.15"
   pullPolicy: IfNotPresent
 
 service:
@@ -16,6 +16,18 @@ config:
   contextPath: /aimusei/api
   mongoUri: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000"
   appKey: "keytest123123"
+  
+  extraProperties: |
+    scheduler.opere.delay-ms=10000
+    scheduler.jobs.delay-ms=30000
+    scheduler.pulitore.delay-ms=86400000
+    csv.batch-size=100
+    preleaver.batch-size=100
+    polling.interval-seconds=60
+    polling.timeout-minutes=60
+    polling.max-consecutive-errors=3
+    cleaner.timeout-hours=4
+    scheduling.config.await-termination=30
 
   # datasources.env
   mongoHost: "mongo-service"
