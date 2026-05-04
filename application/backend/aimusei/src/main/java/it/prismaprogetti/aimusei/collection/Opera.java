@@ -1,7 +1,6 @@
 package it.prismaprogetti.aimusei.collection;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.time.Instant;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -28,7 +27,7 @@ public class Opera {
 	private int version; 
 	private String hash;
 	private String tag;
-	private LocalDate lastUpdate;
+	private Instant lastUpdate;
 	//TODO Rimuovuere le sintesi con suffisso _NEW
 	private Sintesi sintesi;
 	private StatoOpera statoOpera;
@@ -37,8 +36,6 @@ public class Opera {
 	private String validator;
 	
 	private String engineLLM;
-	
-	
 	
 //	 @NotBlank
 //	   String tag,     // e.g. "MUS-SEZ1-ITA"

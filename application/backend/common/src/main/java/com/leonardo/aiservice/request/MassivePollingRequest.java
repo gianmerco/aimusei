@@ -1,6 +1,6 @@
 package com.leonardo.aiservice.request;
 
-import com.leonardo.aiservice.content.BatchTextContent;
+import com.leonardo.aiservice.content.TextContent;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * richiesta di semplificare in modalità batch più testi secondo le linee guida easy-to-read.
- * Ogni testo è identificato da un ID arbitrario, utile per correlare input e output.
+ * richiesta di polling dello stato di un batch (in input ha solamente l'ID del batch)
  */
 
 @Builder
@@ -19,11 +18,11 @@ import lombok.ToString;
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
-public class EtrMassiveRequest implements AiRequest {
-    private final BatchTextContent content;
+public class MassivePollingRequest implements AiRequest {
+    private final TextContent content;
 
     @Override
-    public BatchTextContent getContent() {
+    public TextContent getContent() {
         return content;
     }
 }
