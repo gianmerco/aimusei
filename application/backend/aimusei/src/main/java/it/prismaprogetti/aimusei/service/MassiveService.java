@@ -5,10 +5,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,13 +17,16 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -97,53 +98,59 @@ public class MassiveService {
 	@Async
 	private void populateOperaFromCSV(MultipartFile file, Job job) {
 
-		Set<CsvEntry> batch = new HashSet<>(csvBatchSize);
-		int opereParsed = 0;
-		try (BufferedReader reader = new BufferedReader(
-				new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+	    Set<CsvEntry> batch = new HashSet<>(csvBatchSize);
+	    int opereParsed = 0;
 
-			// skip prima riga
-			reader.readLine();
+	    try (BufferedReader reader = new BufferedReader(
+	            new InputStreamReader(
+	                    BOMInputStream.builder()
+	                            .setInputStream(file.getInputStream())
+	                            .get(),
+	                    StandardCharsets.UTF_8))) {
 
-			String line;
-			while ((line = reader.readLine()) != null) {
-				// parsing
-				try {
-					if (line.isBlank()) {
-						continue;
-					}
-					int firstSep = line.indexOf(';');
-					if (firstSep == -1) {
-						continue;
-					}
+	        String headerLine = reader.readLine();
+	        if (headerLine == null) {
+	            throw new IllegalArgumentException("File CSV vuoto");
+	        }
+	        char delimiter = detectDelimiter(headerLine);
 
-					String tag = line.substring(0, firstSep).trim();
-					String descrizione = line.substring(firstSep + 1).trim();
-					batch.add(new CsvEntry(tag, descrizione));
-					opereParsed++;
-				} catch (Exception e) {
-					continue;
-				}
-				if (batch.size() == csvBatchSize) {
-					insertOperaBatch(batch, job);
-					batch.clear();
-				}
-			}
-			if (!batch.isEmpty()) {
-				insertOperaBatch(batch, job);
-				batch.clear();
-			}
-		} catch (Exception e) {
-			job.setStato(StatoJob.ERRORE_IN_FASE_DI_CREAZIONE);
-			jobRepository.save(job);
-			
-			sanitizeOpereToInsertByJobId(job.getId());
-			
-			throw new RuntimeException("Errore nella lettura del file CSV", e);
-		}
+	        Iterable<CSVRecord> records = CSVFormat.DEFAULT.builder()
+	                .setHeader(headerLine.split(String.valueOf(delimiter)))
+	                .setDelimiter(delimiter)
+	                .setIgnoreEmptyLines(true)
+	                .setTrim(true)
+	                .get()
+	                .parse(reader);
 
-		job.setOpereParsed(opereParsed);
-		jobRepository.save(job);
+	        for (CSVRecord record : records) {
+	            batch.add(new CsvEntry(record.get("tag"), record.get("descrizione")));
+	            opereParsed++;
+
+	            if (batch.size() == csvBatchSize) {
+	                insertOperaBatch(batch, job);
+	                batch.clear();
+	            }
+	        }
+
+	        if (!batch.isEmpty()) {
+	            insertOperaBatch(batch, job);
+	        }
+
+	    } catch (Exception e) {
+	        job.setStato(StatoJob.ERRORE_IN_FASE_DI_CREAZIONE);
+	        jobRepository.save(job);
+	        sanitizeOpereToInsertByJobId(job.getId());
+	        throw new RuntimeException("Errore nella lettura del file CSV", e);
+	    }
+
+	    job.setOpereParsed(opereParsed);
+	    jobRepository.save(job);
+	}
+
+	private char detectDelimiter(String headerLine) {
+	    long semicolons = headerLine.chars().filter(c -> c == ';').count();
+	    long commas = headerLine.chars().filter(c -> c == ',').count();
+	    return semicolons >= commas ? ';' : ',';
 	}
 
 	private void sanitizeOpereToInsertByJobId(String id) {
@@ -259,6 +266,10 @@ public class MassiveService {
 
 			boolean isError = textContentGenerato.getValue().contains("ERRORE");
 
+			if(isError) {
+				log.warn("Il testo generato per il tag {} è stato identificato come errore. Testo generato: {}", tag, textContentGenerato.getValue());
+			}
+			
 			Optional<Opera> operaByTagOPTLatest = operaRepository.findByTag(tag);
 			// Creazione ex novo
 			if (operaByTagOPTLatest.isEmpty()) {

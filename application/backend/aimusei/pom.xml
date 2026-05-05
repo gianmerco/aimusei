@@ -84,8 +84,8 @@
 			<artifactId>aiservice</artifactId>
 			<version>1.0.2</version>
 		</dependency>
-		
-		<!----> 
+
+		<!---->
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-starter-s3</artifactId>
@@ -95,8 +95,16 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>apache-client</artifactId>
 		</dependency>
+
+		<!-- Source:
+		https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.14.1</version>
+		</dependency>
 	</dependencies>
-	
+
 
 	<build>
 		<plugins>
