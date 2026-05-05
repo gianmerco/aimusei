@@ -1,5 +1,4 @@
 namespace: aimusei
-
 nameBase: "aimusei"
 names:
   deployment: aimusei-fe-deployment
@@ -10,7 +9,7 @@ replicaCount: 1
 
 image:
   repository: vincenzopapalia/frontend
-  tag: "2.12"
+  tag: "2.13"
   pullPolicy: IfNotPresent
 
 service:
