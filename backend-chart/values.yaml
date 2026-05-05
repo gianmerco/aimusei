@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: vincenzopapalia/backend
-  tag: "3.5.15"
+  tag: "3.5.16"
   pullPolicy: IfNotPresent
 
 service:
