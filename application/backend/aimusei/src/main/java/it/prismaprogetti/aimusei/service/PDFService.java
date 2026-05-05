@@ -166,7 +166,6 @@ public class PDFService {
 	        float cellHeight) {
 	    try {
 	    	
-	    	key=key.toUpperCase();
 	        // ✅ Ridimensiona i byte PRIMA di creare ImageData
 	        byte[] resizedBytes = resizeImage(imageContent, (int) cellWidth, (int) (cellHeight - 15f));
 
@@ -182,7 +181,7 @@ public class PDFService {
 	        imageParagraph.setPadding(0);
 
 	        Paragraph caption = new Paragraph(key)
-	                .setFontSize(12)
+	                .setFontSize(10)
 	                .setTextAlignment(TextAlignment.CENTER)
 	                .setMargin(0)
 	                .setPadding(0);
