@@ -21,6 +21,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -218,10 +219,12 @@ public class MassiveService {
 		// ancora da verificare che qualcuno non sia in error
 		
 		try {
-		Map<String, Opera> opere = creaOpere(batchTextContent, entries);
+		Set<Opera> opereOldVersion=	new HashSet<Opera>();
+		Map<String, Opera> opere = creaOpere(batchTextContent, entries,opereOldVersion);
 		
 		updateOpereToInsertWithOpere(batchAtomico, opere);
 		
+		insertOpere(opereOldVersion);
 		insertOpere(opere.values());
 		insertOpereToInsert(batchAtomico);
 		} catch (Exception e) {
@@ -256,7 +259,7 @@ public class MassiveService {
 		}
 	}
 
-	private Map<String,Opera> creaOpere(BatchTextContent batchTextContent, Map<String, TextContent> entries) {
+	private Map<String,Opera> creaOpere(BatchTextContent batchTextContent, Map<String, TextContent> entries, Set<Opera> oldVersionsToUpdate) {
 
 		Map<String,Opera> opere = new HashMap<>();
 
@@ -264,7 +267,7 @@ public class MassiveService {
 			String originalText = entries.get(tag).getValue();
 			String hash = DigestUtils.md5DigestAsHex((tag + "#" + originalText).getBytes());
 
-			boolean isError = textContentGenerato.getValue().contains("ERRORE");
+			boolean isError = textContentGenerato.getValue().contains("ERRORE")||StringUtils.isBlank(textContentGenerato.getValue());
 
 			if(isError) {
 				log.warn("Il testo generato per il tag {} è stato identificato come errore. Testo generato: {}", tag, textContentGenerato.getValue());
@@ -297,6 +300,7 @@ public class MassiveService {
 
 				operaByTag.setLatest(false);
 				operaByTag.setLastUpdate(Instant.now());
+				oldVersionsToUpdate.add(operaByTag);
 
 				Opera newOperaVersion = Opera.builder().descrizione(originalText)
 						.version(operaByTag.getVersion() + 1).hash(hash).tag(tag).lastUpdate(Instant.now())

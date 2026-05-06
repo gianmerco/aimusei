@@ -2,6 +2,7 @@ package it.prismaprogetti.aimusei.service;
 
 import java.time.LocalDateTime;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +51,10 @@ public class SintesiService {
 					.build();
 			String descrizioneAi = null;
 			descrizioneAi = ((TextResponse) aiService.sendRequest(etrRequest)).getContent().getValue();
+			
+			if(StringUtils.isBlank(descrizioneAi)) {
+				throw new RuntimeException("AI service returned empty description");
+			}
 
 			return Sintesi.builder()
 					.descrizioneAI(descrizioneAi)
