@@ -38,7 +38,7 @@ ingresses:
   - enabled: true
     name: aimusei-ingress-pubblico
     className: "nginx"
-    host: "api-coll.museiitaliani.it"
+    host: "api.museiitaliani.it"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
       nginx.ingress.kubernetes.io/proxy-connect-timeout: "75"

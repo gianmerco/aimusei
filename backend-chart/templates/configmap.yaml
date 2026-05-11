@@ -24,6 +24,11 @@ data:
     spring.cloud.aws.s3.path-style-access-enabled={{ .Values.config.s3.pathStyleAccessEnabled }}
     spring.cloud.aws.s3.chunked-encoding-enabled={{ .Values.config.s3.chunkedEncodingEnabled }}
     spring.cloud.aws.s3.checksum-validation-enabled={{ .Values.config.s3.checksumValidationEnabled }}
+    spring.servlet.multipart.max-file-size={{ .Values.config.multipart.maxFileSize }}
+    spring.servlet.multipart.max-request-size={{ .Values.config.multipart.maxRequestSize }}
+{{- with .Values.config.extraProperties }}
+{{ . | indent 4 }}
+{{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap

@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: vincenzopapalia/backend
-  tag: "3.5.18"
+  tag: "3.5.19"
   pullPolicy: IfNotPresent
 
 service:
@@ -17,6 +17,10 @@ config:
   mongoUri: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000"
   appKey: "keytest123123"
   
+  multipart:
+    maxFileSize: "20MB"
+    maxRequestSize: "50MB"
+
   extraProperties: |
     scheduler.opere.delay-ms=10000
     scheduler.jobs.delay-ms=30000

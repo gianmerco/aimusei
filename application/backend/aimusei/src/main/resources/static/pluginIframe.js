@@ -2,8 +2,8 @@
   function IframePlugin(options) {
     this.options = Object.assign(
       {
-        pathIcon: "https://api-coll.museiitaliani.it/aimusei/api",
-        urlIframe: "https://api-coll.museiitaliani.it/aimusei/",
+        pathIcon: "https://api.museiitaliani.it/aimusei/api",
+        urlIframe: "https://api.museiitaliani.it/aimusei/",
         observerDom: false,
         autoCheckStatus: true,  // ← abilita/disabilita auto-refresh
         token: '',

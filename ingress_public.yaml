@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: "api-coll.museiitaliani.it"
+    - host: "api.museiitaliani.it"
       http:
         paths:
           # PRIMA LA REGOLA PIÙ SPECIFICA (Backend)
