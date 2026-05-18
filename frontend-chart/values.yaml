@@ -9,7 +9,7 @@ replicaCount: 1
 
 image:
   repository: vincenzopapalia/frontend
-  tag: "2.13"
+  tag: "2.14"
   pullPolicy: IfNotPresent
 
 service:

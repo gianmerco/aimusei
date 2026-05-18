@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: vincenzopapalia/backend
-  tag: "3.5.20"
+  tag: "3.5.21"
   pullPolicy: IfNotPresent
 
 service:
@@ -32,6 +32,13 @@ config:
     polling.max-consecutive-errors=3
     cleaner.timeout-hours=4
     scheduling.config.await-termination=30
+    smn.auth.issuer-uri=MiBACT
+    smn.auth.base-url=https://smn-coll.museiitaliani.it/api/v1
+    keycloak.auth.issuer-uri=https://login-coll.museiitaliani.it/realms/AD-Arte-users
+    keycloak.auth.userinfo-uri=https://login-coll.museiitaliani.it/realms/AD-Arte-users/protocol/openid-connect/userinfo
+    secret=6z1kf4nkx35y5ix28lm3pe2mraqtnrl468gvt4i0
+    springdoc.api-docs.enabled=false
+    springdoc.swagger-ui.enabled=false
 
   # datasources.env
   mongoHost: "mongo-service"
