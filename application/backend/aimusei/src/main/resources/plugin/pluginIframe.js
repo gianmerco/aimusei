@@ -2,8 +2,8 @@
   function IframePlugin(options) {
     this.options = Object.assign(
       {
-        pathIcon: "https://api.museiitaliani.it/aimusei/api",
-        urlIframe: "https://api.museiitaliani.it/aimusei/",
+        pathIcon: "__APP_BASE_URL__/aimusei/api",
+        urlIframe: "__APP_BASE_URL__/aimusei/",
         observerDom: false,
         autoCheckStatus: true,  // ← abilita/disabilita auto-refresh
         token: '',
@@ -86,7 +86,7 @@
     window.addEventListener("message", this._onMessageMain);
   };
 
-  // invio messaggi all’iframe
+  // invio messaggi all'iframe
   IframePlugin.prototype.messageToIframe = function (tag, description, context, title) {
     const iconBtn = this.iconBtnMap.get(tag);
     if (iconBtn) {
@@ -126,13 +126,13 @@
             <div class="modal-header">
               <h1 class="modal-title" id="exampleModalLabel">Accessibilità</h1>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeAngularModal">
-			    <svg xmlns="http://www.w3.org/2000/svg" 
-				   viewBox="0 0 16 16" 
-				   width="20" height="20" 
+			    <svg xmlns="http://www.w3.org/2000/svg"
+				   viewBox="0 0 16 16"
+				   width="20" height="20"
 				   fill="currentColor">
-				<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 
-						 8l2.647 2.646a.5.5 0 0 1-.708.708L8 
-						 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 
+				<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707
+						 8l2.647 2.646a.5.5 0 0 1-.708.708L8
+						 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293
 						 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
 			  </svg>
 			  </button>
@@ -644,7 +644,7 @@
     if (this._destroyed) return;
 
     for (const msg of this._pmQueue.values()) {
-      this.iframe.contentWindow.postMessage(msg, this._targetOrigin);
+      this.iframe.contentWindow.postMessage(msg, this._pmQueue);
     }
     this._pmQueue.clear();
   };
@@ -656,7 +656,7 @@
 
     if (!this._pmReady) {
       const key = msg.type + ":" + (msg.payload?.tag ?? "");
-      this._pmQueue.set(key, msg); // mantiene solo l’ultimo per tag
+      this._pmQueue.set(key, msg); // mantiene solo l'ultimo per tag
       return;
     }
 
@@ -755,7 +755,7 @@
   // funzione helper per attaccare listener di input/change su un elemento o suoi contenteditable figli, con debounce e callback per estrazione testo, utile per aggiornare lo stato del bottone in base al contenuto dell'editor
   IframePlugin.prototype._attachStatusWatch = function (el, tag, getTextFn) {
     if (!el || !tag) return;
-    
+
     // evita doppi bind
     if (el.getAttribute("data-iframe-watch") === "1") return;
     el.setAttribute("data-iframe-watch", "1");
@@ -795,12 +795,12 @@
   // funzione helper per forzare refresh di tutti i bottoni in base al testo attuale degli editor/textarea
   IframePlugin.prototype.refreshAllTags = function () {
     const selector = 'textarea[editor="iframe"], div[editor="iframe"], input[editor="iframe"]';
-  
+
     deepQueryAll(document, selector).forEach((el) => {
       const tag = el.getAttribute("tag") || el.getAttribute("data-iframe-auto-tag");
-    
+
       if (!el.getAttribute("textarea-link") || !tag) return;
-    
+
       console.log(`Refreshing in DOM element with tag=[${tag}]`);
       this.checkStatus(tag, this.extractTextAny(el));
     });
