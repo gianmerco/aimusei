@@ -6,4 +6,6 @@ export type TextSimplified = {
   dateInsert: string;
   dateValidation: string;
   validate: boolean;
+  note?: string;
+  approve?: boolean;
 }

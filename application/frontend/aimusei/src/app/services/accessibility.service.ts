@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { APP_ENVIRONMENT } from './session.service';
 import { AppEnvironment } from '../model/env';
@@ -14,7 +14,8 @@ import { TextStatusResponse } from '../model/text-status-response.model';
   providedIn: 'root',
 })
 export class AccessibilityService {
-  private basePath: string = Constants.accessibility_reqwuest_mapping;
+  private basePath: string = Constants.accessibility_request_mapping;
+  private headers: HttpHeaders = new HttpHeaders();
 
   constructor(
     private http: HttpClient,
@@ -46,7 +47,7 @@ export class AccessibilityService {
    * @returns object
    */
   generateSimplifiedTexts(body: GenerateRequestBody) {
-    return this.http.post<OriginalText>(this.env.apiUrl + this.basePath + '/generate', body);
+    return this.http.post<OriginalText>(this.env.apiUrl + this.basePath + '/generate', body, { headers: this.headers });
   }
 
   /**
@@ -55,7 +56,7 @@ export class AccessibilityService {
    * @returns void
    */
   validateText(body: ValidateRequestBody) {
-    return this.http.patch(this.env.apiUrl + this.basePath + '/validate', body);
+    return this.http.patch(this.env.apiUrl + this.basePath + '/validate', body, { headers: this.headers });
   }
 
   /**
@@ -64,7 +65,7 @@ export class AccessibilityService {
    * @returns string
    */
   regenerateSintesi(body: RegenerateRequestBody) {
-    return this.http.patch(this.env.apiUrl + this.basePath + '/regenerateSintesi', body, { responseType: 'text' });
+    return this.http.patch(this.env.apiUrl + this.basePath + '/regenerateSintesi', body, { headers: this.headers, responseType: 'text' });
   }
 
   /**
@@ -73,7 +74,7 @@ export class AccessibilityService {
    * @returns void
    */
   reviseText(body: ReviseRequestBody) {
-    return this.http.put(this.env.apiUrl + this.basePath + '/revise', body);
+    return this.http.put(this.env.apiUrl + this.basePath + '/revise', body, { headers: this.headers });
   }
 
   /**
@@ -81,7 +82,7 @@ export class AccessibilityService {
    * @returns byte[]
    */
   generatePdf(tag: string, idMuseo: string) {
-    return this.http.post(this.env.apiUrl + this.basePath + '/generateImage', { tag, idMuseo }, { responseType: 'blob' });
+    return this.http.post(this.env.apiUrl + this.basePath + '/generateImage', { tag, idMuseo }, { headers: this.headers, responseType: 'blob' });
   }
 
   /**
@@ -129,4 +130,13 @@ export class AccessibilityService {
     params = params.set('idMuseo', idMuseo);
     return this.http.get<boolean>(this.env.apiUrl + this.basePath + '/imageExists', { params });
 	}
+
+  /**
+   * set headers for http requests
+   */
+  setHeaders(token: string | null) {
+    this.headers = new HttpHeaders();
+    if (token)
+      this.headers = this.headers.set('Authorization', 'Bearer ' + token);
+  }
 }

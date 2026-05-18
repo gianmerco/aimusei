@@ -6,5 +6,6 @@ export class TextStatusResponse {
 export enum TextStatus {
   INCOMPLETO = "INCOMPLETO",
   GENERATO_AI = "GENERATO_AI",
-  REVISIONATO = "REVISIONATO"
+  REVISIONATO = "REVISIONATO",
+  REQUESTED = "REQUESTED"
 }

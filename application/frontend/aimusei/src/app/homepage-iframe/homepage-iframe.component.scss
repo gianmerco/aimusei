@@ -93,10 +93,13 @@ label {
 }
 
 .accordion-body {
-  max-height: 200px;
-  overflow-y: auto;
   padding-bottom: 1rem;
   background-color: white;
+}
+
+.scroll-parent {
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .accordion-item {
@@ -143,4 +146,11 @@ button:focus,
 .no-border-on-focus {
   box-shadow: none !important;
   border: 0px !important;
+}
+
+::ng-deep {
+  :focus:not(.focus--mouse), .form-check [type=checkbox]:focus+label, .form-check [type=radio]:focus+label, .toggles label input[type=checkbox]:focus+.lever {
+    box-shadow: none !important;
+    border: 0px !important;
+  }
 }

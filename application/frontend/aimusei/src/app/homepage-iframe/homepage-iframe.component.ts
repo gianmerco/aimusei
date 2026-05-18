@@ -29,8 +29,11 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     ]),
     selectedType: new FormControl(null, []),
     version: new FormControl(null, []),
-    tag: new FormControl({ value: null, disabled: true }),
+    tag: new FormControl({ value: null, disabled: true })
   });
+
+  editApproval: boolean = false;
+  oldNote: string = '';
 
   types: any[] = [];
   currentTag: string = '';
@@ -41,6 +44,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
   editors: any = {};
   validators: any = {};
   validateObj: any = {};
+  reqObj: any = {};
   edit: any = {};
   pdfExist: boolean = false;
 
@@ -73,35 +77,56 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         window.parent.postMessage({ type: "iframe-ready" }, '*');
         return;
       }
+
       const { payload } = event.data;
       if (!payload)
         return;
+
       console.log('Message received: ', event);
+
+      this.setToken(payload?.token);
+
       if (event.data.type == 'status-button') {
         this.checkButtonStatus(payload.tag, payload.text);
         return ;
       }
-      if (payload?.text && payload?.funz && payload?.tag && payload?.status) {
+
+      if (payload?.status && payload?.text && payload?.funz && payload?.tag) {
         this.status = payload.status;
         this.text = payload.text;
         this.funz = payload.funz;
-        this.token = payload.token;
-        this.idMuseo = payload.idMuseo;
-        this.form.get('title')?.setValue(payload.title);
         this.currentTag = payload.tag;
+        this.idMuseo = payload.idMuseo;
         this.context = payload.context;
+
+        this.form.get('title')?.setValue(payload.title);
         this.buildTypes();
+
         for (let t of this.types) {
           this.form.addControl('checkbox_' + t.key, new FormControl(false, []));
           this.form.addControl(t.key, new FormControl(null, []));
+          this.form.addControl('approve_' + t.key, new FormControl(false, []));
+          this.form.addControl('note_' + t.key, new FormControl(false, []));
           this.edit[t.key] = false;
           this.validateObj[t.key] = false;
+          this.reqObj[t.key] = false;
         }
         this.search();
       } else {
         this.clearForm();
       }
     });
+  }
+
+  cancelUpdates(key: string) {
+    this.edit[key] = false;
+    this.form.get(key)?.setValue(this.oldText);
+    this.oldText = '';
+    if (this.editApproval) {
+      this.editApproval = false;
+      this.form.get('note_' + key)?.setValue(this.oldNote);
+      this.oldNote = '';
+    }
   }
 
   getResults() {
@@ -162,6 +187,21 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
       .subscribe((res) => this.form.get(key)?.patchValue(res));
   }
 
+  insertNote(key: string) {
+    this.edit[key] = false;
+    this.editApproval = false;
+    this.reqObj[key] = true;
+    this.form.get('approve_' + key)?.disable();
+  }
+
+  insertETRText(key: string) {
+    this.edit[key] = true;
+    this.oldText = this.form.get(key)?.value;
+    this.editApproval = true;
+    this.oldNote = this.form.get('note_' + key)?.value;
+    this.form.get('approve_' + key)?.enable();
+  }
+
   formatDate(d: Date) {
     return d.toLocaleDateString();
   }
@@ -189,6 +229,8 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
         elems2.item(i)?.classList.add('collapsed');
       }
     }
+    const status = check ? (this.types.some((t) => !this.validateObj[t.key]) ? (this.types.some((t) => this.reqObj[t.key]) ? 'req' : 'ai') : 'ok') : 'nok';
+    console.log("status: ", status);
     window.parent.postMessage(
       {
         type: 'saved',
@@ -198,7 +240,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
           hash: this.hashCode, // HASH
           context: this.context
         },
-        status: check ? (this.types.some((t) => !this.validateObj[t.key]) ? 'ai' : 'ok') : 'nok',
+        status: status,
       },
       '*'
     );
@@ -330,6 +372,11 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
                 : new Date();
               this.edit[res.textSimplified.tipo] = false;
               this.validateObj[res.textSimplified.tipo] = res.textSimplified.validate;
+              // TODO rimuovere MOCK ↓
+              this.form.get('note_' + res.textSimplified.tipo)?.patchValue(res.textSimplified.note ?? 'Protocollo AABB123');
+              this.form.get('approve_' + res.textSimplified.tipo)?.patchValue(res.textSimplified.approve ?? true);
+              this.form.get('approve_' + res.textSimplified.tipo)?.disable();
+              this.reqObj[res.textSimplified.tipo] = !!res.textSimplified.note;
               // if (this.status == 'new') {
               //   this.setValidation(sint.tipo, false);
               // }
@@ -349,6 +396,7 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
     this.editors = {};
     this.validators = {};
     this.validateObj = {};
+    this.reqObj = {};
     this.edit = {};
     this.text = '';
     this.funz = '';
@@ -368,7 +416,9 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
             body: {
               tag: tag,
             },
-            status: resp?.textStatus == TextStatus.GENERATO_AI ? 'ai' : (resp?.textStatus == TextStatus.REVISIONATO ? 'ok' : 'nok'),
+            status: resp?.textStatus == TextStatus.GENERATO_AI ? 'ai' :
+              (resp?.textStatus == TextStatus.REVISIONATO ? 'ok' :
+                (resp?.textStatus == TextStatus.REQUESTED? 'req' : 'nok')),
           },
           '*'
         );
@@ -406,6 +456,16 @@ export class HomepageIframeComponent implements OnInit, OnDestroy {
           key: 'CAA',
         },
       ];
+    }
+  }
+
+  private setToken(token: string | null) {
+    if (token) {
+      this.token = token;
+      this.accessibilityService.setHeaders(this.token);
+    } else {
+      this.token = '';
+      this.accessibilityService.setHeaders(null);
     }
   }
 }

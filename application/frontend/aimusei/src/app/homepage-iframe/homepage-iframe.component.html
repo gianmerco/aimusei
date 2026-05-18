@@ -117,29 +117,49 @@
               data-bs-parent="#accordionExample"
             >
               <div class="accordion-body p-0">
+                <div class="scroll-parent" *ngIf="!checkEdit(t.key)">
+                  <div
+                    class="custom-scroll py-3"
+                    style="white-space: pre-line"
+                  >
+                    {{ form.get(t.key)?.value }}
+                  </div>
+                </div>
+                <textarea
+                  class="custom-scroll form-control"
+                  *ngIf="checkEdit(t.key)"
+                  [formControlName]="t.key"
+                  rows="10"
+                ></textarea>
                 <div
-                  class="custom-scroll py-3"
-                  *ngIf="!checkEdit(t.key)"
-                  style="white-space: pre-line"
+                  class="py-3"
+                  *ngIf="false && form.get('note_' + t.key)?.value || (checkEdit(t.key) && editApproval)"
                 >
-                  {{ form.get(t.key)?.value }}
+                  <div class="row" *ngIf="!checkEdit(t.key) || (checkEdit(t.key) && editApproval)">
+                    <div class="col-9">
+                      <strong>Note</strong>
+                      <p *ngIf="!checkEdit(t.key)">{{ form.get('note_' + t.key)?.value }}</p>
+                      <textarea
+                        class="form-control"
+                        *ngIf="checkEdit(t.key) && editApproval"
+                        [formControlName]="'note_' + t.key"
+                        rows="5"
+                      ></textarea>
+                    </div>
+                    <div class="col-3 d-flex justify-content-center flex-column">
+                      <strong>Autorizzazione testo EtR</strong>
+                      <div>
+                        <input class="form-check-input" type="checkbox" id="approvazione" [formControlName]="'approve_' + t.key" aria-label="approve">
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <textarea
-                class="custom-scroll form-control"
-                *ngIf="checkEdit(t.key)"
-                [formControlName]="t.key"
-                rows="10"
-              ></textarea>
               <!-- PULSANTI -->
               <div class="d-flex justify-content-end mt-3 px-3">
                 <mat-icon
                   *ngIf="checkEdit(t.key)"
-                  (click)="
-                    edit[t.key] = false;
-                    form.get(t.key)?.setValue(oldText);
-                    oldText = ''
-                  "
+                  (click)="cancelUpdates(t.key)"
                   role="button"
                   title="Annulla modifiche"
                   style="color: red"
@@ -161,7 +181,27 @@
                   >edit</mat-icon
                 >
                 <mat-icon
-                  *ngIf="checkEdit(t.key)"
+                  *ngIf="
+                    false &&
+                    form.get(t.key)?.value?.length > 0 &&
+                    !checkValidate(t.key) &&
+                    !checkEdit(t.key)
+                  "
+                  (click)="insertETRText(t.key)"
+                  role="button"
+                  title="Inserisci testo EtR"
+                  class="primary-color"
+                  [ngClass]="
+                    !form.get(t.key)?.value ||
+                    form.get(t.key)?.value?.length == 0 ||
+                    disabled
+                      ? 'disabled'
+                      : ''
+                  "
+                  >assignment_turned_in</mat-icon
+                >
+                <mat-icon
+                  *ngIf="checkEdit(t.key) && !editApproval"
                   (click)="edit[t.key] = false; revise(t.key)"
                   role="button"
                   title="Salva e valida"
@@ -174,6 +214,24 @@
                       : ''
                   "
                   >spellcheck</mat-icon
+                >
+                <mat-icon
+                  *ngIf="false && editApproval && checkEdit(t.key)"
+                  (click)="insertNote(t.key)"
+                  role="button"
+                  title="Approva"
+                  style="color: green"
+                  [ngClass]="
+                    !form.get(t.key)?.value ||
+                    form.get(t.key)?.value?.length == 0 ||
+                    disabled ||
+                    !form.get('note_' + t.key)?.value ||
+                    form.get('note_' + t.key)?.value?.length == 0 ||
+                    !form.get('approve_' + t.key)?.value
+                      ? 'disabled'
+                      : ''
+                  "
+                  >verified_user</mat-icon
                 >
                 <mat-icon
                   class="ms-2 primary-color"
