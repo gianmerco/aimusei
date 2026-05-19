@@ -51,3 +51,21 @@ ingresses:
         pathType: Prefix
         serviceName: aimusei-fe-service
         servicePort: 80
+
+  - enabled: true
+    name: aimusei-ingress-coll
+    className: "nginx"
+    host: "api-coll.museiitaliani.it"
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "75"
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    paths:
+      - path: /aimusei/api
+        pathType: Prefix
+        serviceName: aimusei-be-service
+        servicePort: 8090
+      - path: /aimusei
+        pathType: Prefix
+        serviceName: aimusei-fe-service
+        servicePort: 80
