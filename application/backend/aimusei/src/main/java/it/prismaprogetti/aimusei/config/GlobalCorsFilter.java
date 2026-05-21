@@ -28,8 +28,6 @@ public class GlobalCorsFilter implements Filter {
     private static final Set<String> ALLOWED_ORIGINS = Set.of(
         "https://akamaicdn.museiitaliani.it",
         "https://portale.museiitaliani.it",
-        "https://portale-coll.museiitaliani.it",
-        "https://smn-coll.museiitaliani.it",
         "https://smn.museiitaliani.it",
         "https://museiitaliani.it",
         "https://sistemamusealenazionale.beniculturali.it",
