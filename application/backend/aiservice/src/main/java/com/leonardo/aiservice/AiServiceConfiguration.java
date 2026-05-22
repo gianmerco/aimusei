@@ -12,7 +12,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.leonardo.aiservice.internal.AiGatewayClient;
@@ -23,6 +22,7 @@ import com.leonardo.aiservice.request.AiRequest;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.netty.channel.ChannelOption;
 import reactor.netty.http.client.HttpClient;
 
 @AutoConfiguration
@@ -52,14 +52,14 @@ public class AiServiceConfiguration {
     @Bean
     @ConditionalOnMissingBean(WebClient.class)
     WebClient webClient(WebClient.Builder builder, AiServiceProperties props) {
+      HttpClient httpClient = HttpClient.create()
+              .responseTimeout(Duration.ofSeconds(props.timeoutSeconds()))
+              .option(ChannelOption.SO_KEEPALIVE, true)
+              .option(ChannelOption.TCP_NODELAY, true);
+
       return builder
-    	.exchangeStrategies(ExchangeStrategies.builder()
-    		            .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(200 * 1024 * 1024)) // 20 MB
-    		            .build())
-         .clientConnector(new ReactorClientHttpConnector(
-              HttpClient.create()
-                  .responseTimeout(Duration.ofSeconds(props.timeoutSeconds()))
-          ))
+        .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(200 * 1024 * 1024))
+         .clientConnector(new ReactorClientHttpConnector(httpClient))
           .build();
   }
 
