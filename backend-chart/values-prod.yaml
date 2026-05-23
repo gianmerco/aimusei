@@ -16,9 +16,14 @@
 # Bloccato qui per chiarezza, anche se identico a values.yaml.
 # Cambiare quando si fa rilascio prod, lasciare values.yaml a tag coll.
 image:
-  repository: aptul9/backend
+  repository: harbor-adarte.museiitaliani.it/adarte/aimusei-backend
   tag: "3.5.24"
   pullPolicy: IfNotPresent
+
+# Su prod il secret di pull si chiama "harbor-prod-pull". Va creato a parte
+# (kubectl create secret docker-registry harbor-prod-pull --docker-server=harbor-adarte.museiitaliani.it ...)
+imagePullSecrets:
+  - name: harbor-prod-pull
 
 config:
   # PROD: smn senza host nudo, keycloak login prod.

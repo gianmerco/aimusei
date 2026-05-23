@@ -15,9 +15,12 @@ nameBase: "aimusei"
 replicaCount: 1
 
 image:
-  repository: aptul9/backend
+  repository: harbor-adarte-coll.museiitaliani.it/adarte/aimusei-backend
   tag: "3.5.24"
   pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: harbor-coll-pull
 
 service:
   type: ClusterIP

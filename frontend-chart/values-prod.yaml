@@ -14,9 +14,12 @@
 ###############################################################################
 
 image:
-  repository: aptul9/frontend
+  repository: harbor-adarte.museiitaliani.it/adarte/aimusei-frontend
   tag: "2.14"
   pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: harbor-prod-pull
 
 ingresses:
   - enabled: true

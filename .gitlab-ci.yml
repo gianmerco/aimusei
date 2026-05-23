@@ -1,0 +1,144 @@
+###############################################################################
+# Pipeline aimusei - solo COLL per il momento (PROD verra' aggiunta quando il
+# runner prod sara' deployato nel cluster adarte).
+#
+# Triggera quando vengono pushati cambi a application/, *-chart/, .gitlab-ci.yml
+# Il job deploy-coll e' manuale per evitare deploy automatici a ogni push.
+#
+# CI/CD Variables (set su Settings -> CI/CD -> Variables):
+#   HARBOR_USER       robot$adarte+aimusei-ci         (masked, protected)
+#   HARBOR_PASS       <secret robot Harbor coll>      (masked, protected)
+#
+# Runner registrato in cluster adarte-coll (ns gitlab-runner) tag "coll,aimusei".
+# Image runtime: harbor-adarte-coll.museiitaliani.it/adarte/aimusei-*
+###############################################################################
+
+stages:
+  - build
+  - deploy-coll
+
+variables:
+  HARBOR_REGISTRY: harbor-adarte-coll.museiitaliani.it
+  HARBOR_PROJECT: adarte
+  BACKEND_IMAGE: aimusei-backend
+  FRONTEND_IMAGE: aimusei-frontend
+  # Tag image: SHA breve del commit + numero pipeline per immutabilita'.
+  BACKEND_TAG: "${CI_COMMIT_SHORT_SHA}-${CI_PIPELINE_IID}"
+  FRONTEND_TAG: "${CI_COMMIT_SHORT_SHA}-${CI_PIPELINE_IID}"
+  # Trust del CA Caddy (cert proxy in-cluster). Iniettato come ConfigMap nei pod
+  # del runner via /etc/gitlab-runner/certs/, valore env letto da git stesso.
+  GIT_SSL_NO_VERIFY: "true"
+
+###############################################################################
+# Stage build: usa Kaniko per buildare senza Docker daemon (no DinD privileged).
+###############################################################################
+
+build-backend:
+  stage: build
+  tags: [coll]
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  rules:
+    - changes:
+        - application/backend/**/*
+        - backend-chart/**/*
+        - .gitlab-ci.yml
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - |
+      cat > /kaniko/.docker/config.json <<EOF
+      {
+        "auths": {
+          "${HARBOR_REGISTRY}": {
+            "auth": "$(echo -n "${HARBOR_USER}:${HARBOR_PASS}" | base64 -w0)"
+          }
+        }
+      }
+      EOF
+  script:
+    - /kaniko/executor
+        --context "${CI_PROJECT_DIR}/application/backend"
+        --dockerfile "${CI_PROJECT_DIR}/application/backend/Dockerfile"
+        --destination "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${BACKEND_IMAGE}:${BACKEND_TAG}"
+        --skip-tls-verify
+        --skip-tls-verify-pull
+        --skip-tls-verify-registry
+        --cache=true
+        --cache-repo "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${BACKEND_IMAGE}-cache"
+
+build-frontend:
+  stage: build
+  tags: [coll]
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  rules:
+    - changes:
+        - application/frontend/**/*
+        - frontend-chart/**/*
+        - .gitlab-ci.yml
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - |
+      cat > /kaniko/.docker/config.json <<EOF
+      {
+        "auths": {
+          "${HARBOR_REGISTRY}": {
+            "auth": "$(echo -n "${HARBOR_USER}:${HARBOR_PASS}" | base64 -w0)"
+          }
+        }
+      }
+      EOF
+  script:
+    - /kaniko/executor
+        --context "${CI_PROJECT_DIR}/application/frontend/aimusei"
+        --dockerfile "${CI_PROJECT_DIR}/application/frontend/aimusei/Dockerfile"
+        --destination "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${FRONTEND_IMAGE}:${FRONTEND_TAG}"
+        --skip-tls-verify
+        --skip-tls-verify-pull
+        --skip-tls-verify-registry
+
+###############################################################################
+# Stage deploy-coll: helm upgrade sul cluster adarte-coll.
+# Il runner gira in-cluster con SA con permessi sul ns aimusei.
+# Manuale di default per safety (no auto-deploy ad ogni push su versione-1.2).
+###############################################################################
+
+deploy-coll:
+  stage: deploy-coll
+  tags: [coll]
+  image: alpine/helm:3.16.3
+  when: manual
+  environment:
+    name: coll
+    url: https://api-coll.museiitaliani.it/aimusei/
+  rules:
+    - if: $CI_COMMIT_BRANCH == "versione-1.2"
+  before_script:
+    - apk add --no-cache curl bash
+    - curl -sLO https://dl.k8s.io/release/v1.25.16/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/
+  script:
+    # Verifica context (in-cluster via SA del pod runner job)
+    - kubectl version --client
+    - kubectl get pods -n aimusei
+    # helm diff opzionale (richiede plugin; skip se non installato)
+    - helm version
+    # Determina quale image tag usare. Se questo pipeline ha buildato BE/FE, usa
+    # i tag nuovi. Altrimenti lascia i default del values.yaml (image gia' su Harbor).
+    - |
+      EXTRA_SET=""
+      if [ -n "$BACKEND_TAG" ]; then EXTRA_SET="$EXTRA_SET --set image.tag=${BACKEND_TAG}"; fi
+    # Backend
+    - helm upgrade backend-app ./backend-chart/ -n aimusei --reset-values --set image.tag=${BACKEND_TAG}
+    - kubectl -n aimusei rollout status deploy/aimusei-be-deployment --timeout=180s
+    # Frontend
+    - helm upgrade frontend-app ./frontend-chart/ -n aimusei --reset-values --set image.tag=${FRONTEND_TAG}
+    - kubectl -n aimusei rollout status deploy/aimusei-fe-deployment --timeout=180s
+    # Smoke
+    - |
+      curl -sk -o /dev/null -w "FE_http=%{http_code}\n" --max-time 15 https://api-coll.museiitaliani.it/aimusei/
+      curl -sk -X POST -H "Content-Type: application/json" \
+        -d '{"tagHashRequest":[{"tag":"BIGLIETTO-DESCRIZIONE-2630-1621-IT","hash":""}]}' \
+        -o /dev/null -w "BE_http=%{http_code}\n" --max-time 15 \
+        https://api-coll.museiitaliani.it/aimusei/api/public/texts/massive

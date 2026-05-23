@@ -1,0 +1,79 @@
+###############################################################################
+# Caddy reverse-proxy in-cluster verso GitLab coll (cert TLS expired su VM).
+# Caddy genera cert auto-signed locale, fa skip-verify verso upstream.
+# Risolve il blocker: gitlab-runner non puo' parlare HTTPS con la VM perche'
+# il cert e' scaduto dal 2025-01-01.
+#
+# Una volta che il cert GitLab e' rinnovato, questo Deployment va RIMOSSO e il
+# gitlab-runner-values-coll.yaml puntato di nuovo a gitlab.adarte-coll.local.
+###############################################################################
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caddy-config
+  namespace: gitlab-runner
+data:
+  Caddyfile: |
+    {
+      auto_https disable_redirects
+      admin off
+      local_certs
+    }
+    gitlab.adarte-coll.local, gitlab-proxy.gitlab-runner.svc.cluster.local {
+      tls internal
+      reverse_proxy https://10.197.129.31 {
+        transport http {
+          tls
+          tls_insecure_skip_verify
+          tls_server_name gitlab.adarte-coll.local
+        }
+        header_up Host gitlab.adarte-coll.local
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-proxy
+  namespace: gitlab-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: gitlab-proxy}
+  template:
+    metadata:
+      labels: {app: gitlab-proxy}
+    spec:
+      containers:
+        - name: caddy
+          image: caddy:2.8-alpine
+          ports:
+            - containerPort: 443
+              name: https
+          volumeMounts:
+            - name: config
+              mountPath: /etc/caddy
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            tcpSocket: {port: 443}
+            initialDelaySeconds: 3
+      volumes:
+        - name: config
+          configMap:
+            name: caddy-config
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab-proxy
+  namespace: gitlab-runner
+spec:
+  selector: {app: gitlab-proxy}
+  ports:
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https

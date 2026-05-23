@@ -1,0 +1,51 @@
+###############################################################################
+# values per gitlab-runner sul cluster adarte-coll
+# helm install gitlab-runner-coll gitlab/gitlab-runner -n gitlab-runner \
+#   -f .ops/gitlab-runner-values-coll.yaml
+###############################################################################
+
+# Workaround: cert GitLab VM scaduto dal 2025-01-01. Punto a reverse proxy Caddy
+# in-cluster (.ops/caddy-gitlab-proxy.yaml) che termina TLS con cert fresco e
+# fa skip-verify verso la VM upstream.
+# Quando il cert GitLab e' rinnovato, tornare a https://gitlab.adarte-coll.local/
+# e ripristinare hostAliases.
+gitlabUrl: https://gitlab-proxy.gitlab-runner.svc.cluster.local/
+runnerToken: ""
+runnerRegistrationToken: "GR1348941EjjbsnzyKnHAsdFDxnJv"
+unregisterRunners: true
+
+# CA Caddy (proxy in-cluster). Il filename DEVE matchare l'hostname del gitlabUrl.
+certsSecretName: gitlab-coll-ca
+
+rbac:
+  create: true
+  rules:
+    - apiGroups: [""]
+      resources: ["pods","pods/exec","pods/attach","pods/log","secrets","configmaps","serviceaccounts"]
+      verbs: ["get","list","watch","create","patch","update","delete"]
+    - apiGroups: [""]
+      resources: ["events"]
+      verbs: ["list","watch"]
+
+serviceAccount:
+  create: true
+
+runners:
+  privileged: false
+  tags: "coll,aimusei"
+  config: |
+    [[runners]]
+      name = "runner-coll-aimusei"
+      executor = "kubernetes"
+      [runners.kubernetes]
+        namespace = "gitlab-runner"
+        service_account = "aimusei-deployer"
+        image = "ubuntu:22.04"
+        privileged = false
+        cpu_request = "100m"
+        memory_request = "256Mi"
+        helper_cpu_request = "50m"
+        helper_memory_request = "64Mi"
+        poll_timeout = 600
+
+# RBAC custom: il runner spawna i pod job con il SA aimusei-deployer (vedi runner-rbac-coll.yaml)

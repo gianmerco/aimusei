@@ -1,0 +1,40 @@
+###############################################################################
+# RBAC per il SA che il runner usa nei job di deploy.
+# Il SA "aimusei-deployer" sta nel ns gitlab-runner (dove gira il job runner)
+# e ha permessi admin sul ns aimusei (helm upgrade, get/list pods, rollout, etc).
+###############################################################################
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aimusei-deployer
+  namespace: gitlab-runner
+---
+# Helm v3 ha bisogno di vedere/scrivere secrets nel ns target (storage release).
+# Diamo admin role completo sul ns aimusei.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: aimusei-deployer-admin
+  namespace: aimusei
+subjects:
+  - kind: ServiceAccount
+    name: aimusei-deployer
+    namespace: gitlab-runner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+---
+# Anche cluster-scoped read sui CRD basilari (utile a kubectl version, get nodes, etc.).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: aimusei-deployer-cluster-read
+subjects:
+  - kind: ServiceAccount
+    name: aimusei-deployer
+    namespace: gitlab-runner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view

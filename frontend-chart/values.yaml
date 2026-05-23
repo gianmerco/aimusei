@@ -19,9 +19,12 @@ names:
 replicaCount: 1
 
 image:
-  repository: aptul9/frontend
+  repository: harbor-adarte-coll.museiitaliani.it/adarte/aimusei-frontend
   tag: "2.14"
   pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: harbor-coll-pull
 
 service:
   type: ClusterIP
