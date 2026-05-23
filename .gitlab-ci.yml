@@ -115,10 +115,19 @@ deploy-coll:
     # Frontend
     - helm upgrade frontend-app ./frontend-chart/ -n aimusei --reset-values --set image.tag=${FRONTEND_TAG}
     - kubectl -n aimusei rollout status deploy/aimusei-fe-deployment --timeout=180s
-    # Smoke
+    # Attesa propagazione ingress + warmup spring boot
+    - sleep 20
+    # Smoke con retry: durante rollout/warmup le risposte possono essere 5xx transient
     - |
-      curl -sk -o /dev/null -w "FE_http=%{http_code}\n" --max-time 15 https://api-coll.museiitaliani.it/aimusei/
-      curl -sk -X POST -H "Content-Type: application/json" \
-        -d '{"tagHashRequest":[{"tag":"BIGLIETTO-DESCRIZIONE-2630-1621-IT","hash":""}]}' \
-        -o /dev/null -w "BE_http=%{http_code}\n" --max-time 15 \
-        https://api-coll.museiitaliani.it/aimusei/api/public/texts/massive
+      for i in 1 2 3 4 5; do
+        FE=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 15 https://api-coll.museiitaliani.it/aimusei/)
+        BE=$(curl -sk -X POST -H "Content-Type: application/json" \
+          -d '{"tagHashRequest":[{"tag":"BIGLIETTO-DESCRIZIONE-2630-1621-IT","hash":""}]}' \
+          -o /dev/null -w "%{http_code}" --max-time 15 \
+          https://api-coll.museiitaliani.it/aimusei/api/public/texts/massive)
+        echo "[try $i] FE=$FE BE=$BE"
+        [ "$FE" = "200" ] && [ "$BE" = "200" ] && exit 0
+        sleep 10
+      done
+      echo "smoke failed FE=$FE BE=$BE" >&2
+      exit 1
