@@ -26,11 +26,18 @@ import jakarta.servlet.http.HttpServletResponse;
 public class GlobalCorsFilter implements Filter {
 
     private static final Set<String> ALLOWED_ORIGINS = Set.of(
+        // PROD origins
         "https://akamaicdn.museiitaliani.it",
         "https://portale.museiitaliani.it",
         "https://smn.museiitaliani.it",
         "https://museiitaliani.it",
         "https://sistemamusealenazionale.beniculturali.it",
+        // COLLAUDO origins (i nomi -coll risolvono solo su rete coll; nessun leak prod)
+        "https://akamaicdn-coll.museiitaliani.it",
+        "https://portale-coll.museiitaliani.it",
+        "https://smn-coll.museiitaliani.it",
+        "https://api-coll.museiitaliani.it",
+        // local dev
         "http://localhost:5173",
         "http://localhost:8000",
         "http://localhost:8080",
