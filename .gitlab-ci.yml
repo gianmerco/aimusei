@@ -46,16 +46,7 @@ build-backend:
         - .gitlab-ci.yml
   before_script:
     - mkdir -p /kaniko/.docker
-    - |
-      cat > /kaniko/.docker/config.json <<EOF
-      {
-        "auths": {
-          "${HARBOR_REGISTRY}": {
-            "auth": "$(echo -n "${HARBOR_USER}:${HARBOR_PASS}" | base64 -w0)"
-          }
-        }
-      }
-      EOF
+    - echo "$DOCKER_AUTH_CONFIG" > /kaniko/.docker/config.json
   script:
     - /kaniko/executor
         --context "${CI_PROJECT_DIR}/application/backend"
@@ -63,7 +54,6 @@ build-backend:
         --destination "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${BACKEND_IMAGE}:${BACKEND_TAG}"
         --skip-tls-verify
         --skip-tls-verify-pull
-        --skip-tls-verify-registry
         --cache=true
         --cache-repo "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${BACKEND_IMAGE}-cache"
 
@@ -80,16 +70,7 @@ build-frontend:
         - .gitlab-ci.yml
   before_script:
     - mkdir -p /kaniko/.docker
-    - |
-      cat > /kaniko/.docker/config.json <<EOF
-      {
-        "auths": {
-          "${HARBOR_REGISTRY}": {
-            "auth": "$(echo -n "${HARBOR_USER}:${HARBOR_PASS}" | base64 -w0)"
-          }
-        }
-      }
-      EOF
+    - echo "$DOCKER_AUTH_CONFIG" > /kaniko/.docker/config.json
   script:
     - /kaniko/executor
         --context "${CI_PROJECT_DIR}/application/frontend/aimusei"
@@ -97,7 +78,6 @@ build-frontend:
         --destination "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${FRONTEND_IMAGE}:${FRONTEND_TAG}"
         --skip-tls-verify
         --skip-tls-verify-pull
-        --skip-tls-verify-registry
 
 ###############################################################################
 # Stage deploy-coll: helm upgrade sul cluster adarte-coll.
