@@ -1,0 +1,52 @@
+###############################################################################
+# values-prod.yaml = OVERLAY PRODUZIONE (cluster adarte)
+#
+# Uso:
+#   helm upgrade --kube-context adarte -n aimusei backend-app ./backend-chart/ \
+#     -f backend-chart/values-prod.yaml --reset-values
+#
+# Sovrascrive SOLO i valori che differiscono tra coll e prod.
+# Tutti gli altri valori (mongo, S3, RBAC, hostAliases) restano dal values.yaml.
+#
+# IMPORTANTE: prima di apply, sempre:
+#   helm diff upgrade --kube-context adarte -n aimusei backend-app \
+#     ./backend-chart/ -f backend-chart/values-prod.yaml --reset-values
+###############################################################################
+
+# Bloccato qui per chiarezza, anche se identico a values.yaml.
+# Cambiare quando si fa rilascio prod, lasciare values.yaml a tag coll.
+image:
+  repository: aptul9/backend
+  tag: "3.5.24"
+  pullPolicy: IfNotPresent
+
+config:
+  # PROD: smn senza host nudo, keycloak login prod.
+  # Override completo della stringa extraProperties (Helm sostituisce, non merge).
+  extraProperties: |
+    scheduler.opere.delay-ms=10000
+    scheduler.jobs.delay-ms=30000
+    scheduler.pulitore.delay-ms=86400000
+    csv.batch-size=100
+    preleaver.batch-size=100
+    polling.interval-seconds=60
+    polling.timeout-minutes=60
+    polling.max-consecutive-errors=3
+    cleaner.timeout-hours=4
+    scheduling.config.await-termination=30
+    smn.auth.issuer-uri=MiBACT
+    smn.auth.base-url=https://museiitaliani.it/api/v1
+    keycloak.auth.issuer-uri=https://login.museiitaliani.it/realms/AD-Arte-users
+    keycloak.auth.userinfo-uri=https://login.museiitaliani.it/realms/AD-Arte-users/protocol/openid-connect/userinfo
+    secret=6z1kf4nkx35y5ix28lm3pe2mraqtnrl468gvt4i0
+    springdoc.api-docs.enabled=false
+    springdoc.swagger-ui.enabled=false
+
+  envVars:
+    SPRING_DATA_MONGODB_URI: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000"
+    AI_GATEWAY_URI: "http://aigateway-middleware.accessibilita.svc.cluster.local:80"
+    AI_GATEWAY_ENDPOINT: "/aiservice/airequest"
+    K8S_CLIENT_SERVICE_ACCOUNT_NAME: "aimusei-sa"
+    K8S_CLIENT_NAMESPACE: "aimusei"
+    # PROD host pubblico.
+    APP_BASE_URL: "https://api.museiitaliani.it"

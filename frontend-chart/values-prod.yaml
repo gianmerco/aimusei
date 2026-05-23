@@ -1,34 +1,23 @@
 ###############################################################################
-# values.yaml = DEFAULT COLLAUDO (cluster adarte-coll)
+# values-prod.yaml = OVERLAY PRODUZIONE (cluster adarte)
 #
-# Per PROD (cluster adarte) usare l'overlay:
+# Uso:
 #   helm upgrade --kube-context adarte -n aimusei frontend-app ./frontend-chart/ \
 #     -f frontend-chart/values-prod.yaml --reset-values
 #
-# NON modificare gli ingress qui per fare il rilascio prod.
-# Procedura completa: vedere [[aimusei-rilasci]] nel vault Obsidian.
+# IMPORTANTE: prima di apply, sempre:
+#   helm diff upgrade --kube-context adarte -n aimusei frontend-app \
+#     ./frontend-chart/ -f frontend-chart/values-prod.yaml --reset-values
+#
+# NB: Helm sostituisce gli array, non li merge. Quindi `ingresses` qui sotto
+# ridefinisce l'INTERO array senza l'ingress -coll.
 ###############################################################################
-
-namespace: aimusei
-nameBase: "aimusei"
-names:
-  deployment: aimusei-fe-deployment
-  service: aimusei-fe-service
-  ingress: aimusei-ingress
-
-replicaCount: 1
 
 image:
   repository: aptul9/frontend
   tag: "2.14"
   pullPolicy: IfNotPresent
 
-service:
-  type: ClusterIP
-  port: 80
-
-# COLL = 3 ingress: locale, pubblico (host prod ma definito anche su coll storicamente), coll.
-# PROD override in values-prod.yaml rimuove l'ingress -coll.
 ingresses:
   - enabled: true
     name: aimusei-ingress-locale
@@ -55,24 +44,6 @@ ingresses:
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
       nginx.ingress.kubernetes.io/proxy-connect-timeout: "75"
-    paths:
-      - path: /aimusei/api
-        pathType: Prefix
-        serviceName: aimusei-be-service
-        servicePort: 8090
-      - path: /aimusei
-        pathType: Prefix
-        serviceName: aimusei-fe-service
-        servicePort: 80
-
-  - enabled: true
-    name: aimusei-ingress-coll
-    className: "nginx"
-    host: "api-coll.museiitaliani.it"
-    annotations:
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-      nginx.ingress.kubernetes.io/proxy-connect-timeout: "75"
-      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
     paths:
       - path: /aimusei/api
         pathType: Prefix

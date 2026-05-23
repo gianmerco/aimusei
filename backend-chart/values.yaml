@@ -1,3 +1,14 @@
+###############################################################################
+# values.yaml = DEFAULT COLLAUDO (cluster adarte-coll)
+#
+# Per PROD (cluster adarte) usare l'overlay:
+#   helm upgrade --kube-context adarte -n aimusei backend-app ./backend-chart/ \
+#     -f backend-chart/values-prod.yaml --reset-values
+#
+# NON modificare i valori env-specifici qui per fare il rilascio prod.
+# Procedura completa: vedere [[aimusei-rilasci]] nel vault Obsidian.
+###############################################################################
+
 namespace: aimusei
 nameBase: "aimusei"
 
@@ -16,11 +27,12 @@ config:
   contextPath: /aimusei/api
   mongoUri: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000"
   appKey: "keytest123123"
-  
+
   multipart:
     maxFileSize: "20MB"
     maxRequestSize: "50MB"
 
+  # COLL: smn-coll / login-coll. PROD override in values-prod.yaml.
   extraProperties: |
     scheduler.opere.delay-ms=10000
     scheduler.jobs.delay-ms=30000
@@ -33,9 +45,9 @@ config:
     cleaner.timeout-hours=4
     scheduling.config.await-termination=30
     smn.auth.issuer-uri=MiBACT
-    smn.auth.base-url=https://museiitaliani.it/api/v1
-    keycloak.auth.issuer-uri=https://login.museiitaliani.it/realms/AD-Arte-users
-    keycloak.auth.userinfo-uri=https://login.museiitaliani.it/realms/AD-Arte-users/protocol/openid-connect/userinfo
+    smn.auth.base-url=https://smn-coll.museiitaliani.it/api/v1
+    keycloak.auth.issuer-uri=https://login-coll.museiitaliani.it/realms/AD-Arte-users
+    keycloak.auth.userinfo-uri=https://login-coll.museiitaliani.it/realms/AD-Arte-users/protocol/openid-connect/userinfo
     secret=6z1kf4nkx35y5ix28lm3pe2mraqtnrl468gvt4i0
     springdoc.api-docs.enabled=false
     springdoc.swagger-ui.enabled=false
@@ -44,7 +56,7 @@ config:
   mongoHost: "mongo-service"
   mongoDatabase: "aimusei"
   forwardHeadersStrategy: NATIVE
-  
+
   s3:
     endpoint: "https://s3-nord.iaas01.console.polostrategiconazionale.it:9021"
     region: "us-east-1"
@@ -53,7 +65,7 @@ config:
     pathStyleAccessEnabled: true
     chunkedEncodingEnabled: true
     checksumValidationEnabled: false
-  
+
   aiservice:
     uri: "http://aigateway-middleware.accessibilita.svc.cluster.local:80"
     endpoint: "/aiservice/airequest"
@@ -62,12 +74,13 @@ config:
     enabled: true
 
   envVars:
-    SPRING_DATA_MONGODB_URI: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000" # puoi anche metterla qui
+    SPRING_DATA_MONGODB_URI: "mongodb://mongo-service:27017/aimusei?connectTimeoutMS=30000&socketTimeoutMS=30000"
     AI_GATEWAY_URI: "http://aigateway-middleware.accessibilita.svc.cluster.local:80"
     AI_GATEWAY_ENDPOINT: "/aiservice/airequest"
     K8S_CLIENT_SERVICE_ACCOUNT_NAME: "aimusei-sa"
     K8S_CLIENT_NAMESPACE: "aimusei"
-    APP_BASE_URL: "https://api.museiitaliani.it"
+    # COLL host pubblico. PROD override in values-prod.yaml.
+    APP_BASE_URL: "https://api-coll.museiitaliani.it"
 
 hostAliases:
   - ip: "95.100.171.215"
